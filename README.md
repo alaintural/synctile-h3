@@ -11,6 +11,16 @@ MiniMax H3 is an open-weights video model that also generates sound. On a 24 GB 
 
 Full write-up with videos: [pixedi.com/lab/minimax-h3-4k-synctile](https://pixedi.com/lab/minimax-h3-4k-synctile). Demo clips (4K originals) are attached to the [latest release](../../releases).
 
+## Demo (original files, open full screen)
+
+| Clip | What to look at |
+|---|---|
+| [Drone canyon, 3840 x 2160](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/drone-canyon-4k-synctile.mp4) (51 MB) | Fast camera move, kayaker crossing the tile seams |
+| [Café close-up, 3840 x 2160](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/cafe-closeup-4k-synctile.mp4) (22 MB) | Eyes, beard and skin across the seams |
+| [Same café clip through MMH3 Split Upscale](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/cafe-closeup-4k-split-upscale.mp4) | Compare face position and texture in motion |
+| [SeedVR2 7B vs SyncTile, 1:1 crop](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/seedvr2-vs-synctile-crop.mp4) | Left SeedVR2, right SyncTile: texture shimmer |
+| [25 steps vs 8 steps + int8](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/25-steps-vs-8-steps-int8.mp4) | 562 s vs 114 s, same seed |
+
 ## What is new here
 
 Tiled upscaling is not new. MultiDiffusion (Bar-Tal et al., 2023) showed that diffusion tiles stay coherent if they are fused at every denoising step, and the MiniMax H3 community already has tiled upscalers (MMH3 Split Upscale). What this repo adds:
@@ -59,9 +69,13 @@ All numbers on one RTX 4090, same prompts and seed. Details and caveats in the w
 | + frequency lock | 430-438 s | Double edges on moving objects |
 | **SyncTile (per-step sync)** | **243-272 s** | No seam, eyes agree |
 
+![Four quarters generated separately: four different scenes](docs/naive-four-quadrants.webp)
+
 ![Four tiles finished separately: the eyes disagree](docs/four-tiles-eye-drift.webp)
 
 ![Eye region: base, four tiles / SyncTile, four tiles + center tile](docs/eye-region-methods.webp)
+
+![Drone shot at the seam crossing: base, four tiles, SyncTile](docs/drone-tiles-vs-sync.webp)
 
 ### 4K routes compared (same base clips, 5 s, café / drone)
 
