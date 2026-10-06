@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use SyncTile, please cite it as below."
+title: "SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks"
+type: software
+authors:
+  - family-names: Tural
+    given-names: Alain
+    affiliation: Pixedi
+repository-code: "https://github.com/alaintural/synctile-h3"
+url: "https://pixedi.com/lab/minimax-h3-4k-synctile"
+license: MIT
+version: 0.1.0
+date-released: 2026-10-06
+keywords:
+  - MiniMax H3
+  - video generation
+  - 4K
+  - tiled diffusion
+  - MultiDiffusion
+  - ComfyUI

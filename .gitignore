@@ -1,0 +1,4 @@
+synctile_output/
+__pycache__/
+*.latent
+*.mp4
