@@ -9,7 +9,8 @@ authors:
 repository-code: "https://github.com/alaintural/synctile-h3"
 url: "https://pixedi.com/lab/minimax-h3-4k-synctile"
 license: MIT
-version: 0.1.0
+version: 0.1.1
+doi: 10.5281/zenodo.23196934
 date-released: 2026-10-06
 keywords:
   - MiniMax H3

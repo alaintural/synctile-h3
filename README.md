@@ -1,5 +1,7 @@
 # SyncTile for MiniMax H3
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23196934.svg)](https://doi.org/10.5281/zenodo.23196934)
+
 **4.9x faster local MiniMax H3 generation, and native-resolution 4K (3840 x 2160) through synchronized tiles, on one RTX 4090.**
 
 ![A MiniMax H3 clip taken to 4K with SyncTile](docs/cover-4k-frame.webp)
@@ -147,8 +149,8 @@ This repo contains code only, no model weights. Bring your own MiniMax H3 weight
 If SyncTile helps your work, please cite it (see `CITATION.cff`):
 
 ```
-Tural, A. (2026). SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks. Pixedi AI Lab.
-https://github.com/alaintural/synctile-h3
+Tural, A. (2026). SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks (Version 0.1.1). Pixedi AI Lab. Zenodo.
+https://doi.org/10.5281/zenodo.23196934
 ```
 
 ## License
