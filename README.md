@@ -112,7 +112,10 @@ export COMFYUI_OUTPUT=/path/to/ComfyUI/output    # ComfyUI's output folder (or i
 python synctile_h3.py fast "A drone shot over a red-rock canyon at golden hour" --seconds 5
 python synctile_h3.py 4k   "A drone shot over a red-rock canyon at golden hour" --seconds 5 --name canyon
 python synctile_h3.py 4k   --prompt-file prompt.txt --sharpen 0      # no sharpening
+python synctile_h3.py 4k   "A drone shot over a red-rock canyon at golden hour" --size 1920x1088   # 1080p
 ```
+
+`--size WxH` sets the target of the SyncTile pass (default 3840x2160). Both sides must be multiples of 16. At 1920x1088 the canvas needs 4 tiles instead of 9: a 5 s clip took 200 s for the tile pass on an RTX 4090 (plus 104 s for the fast clip).
 
 Output goes to `./synctile_output/`: the fast 1344 x 768 clip, the 4K clip, the sharpened 4K clip and a JSON log. Intermediate latents land in `<ComfyUI output>/synctile/_tmp/` and can be deleted.
 

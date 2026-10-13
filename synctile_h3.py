@@ -12,6 +12,7 @@ Examples:
   python synctile_h3.py fast "A drone shot over a red-rock canyon at golden hour" --seconds 5
   python synctile_h3.py 4k   "A drone shot over a red-rock canyon at golden hour" --seconds 5
   python synctile_h3.py 4k   --prompt-file prompt.txt --name canyon --sharpen 0
+  python synctile_h3.py 4k   "A drone shot over a red-rock canyon at golden hour" --size 1920x1088
 
 See README.md for setup, benchmarks and limits.
 Copyright (c) 2026 Alain Tural, Pixedi. MIT License.
@@ -89,7 +90,11 @@ class Comfy:
                 return time.time() - t0, None
 
     def latest_latent(self, prefix):
-        return max((self.output_dir / TMP).glob(f"{prefix}_*.latent"), key=lambda p: p.stat().st_mtime)
+        # some ComfyUI setups flatten sub-folders into the file name, so look in both places
+        found = list((self.output_dir / TMP).glob(f"{prefix}_*.latent")) or list(self.output_dir.glob(f"*{prefix}_*.latent"))
+        if not found:
+            sys.exit(f"Latent '{prefix}' not found under {self.output_dir}")
+        return max(found, key=lambda p: p.stat().st_mtime)
 
     def put_latent(self, tensor, name):
         save_file({"latent_tensor": tensor.contiguous(), "latent_format_version_0": torch.tensor([])},
@@ -170,10 +175,10 @@ def ramp(p, tile, all_pos):
     return w
 
 
-def synctile_4k(comfy, prompt, frames, base_clip, key):
+def synctile_4k(comfy, prompt, frames, base_clip, key, out_w=OUT_W, out_h=OUT_H):
     clip_name = f"{key}_base.mp4"
     shutil.copy2(base_clip, comfy.input_dir / clip_name)
-    # 1) base clip -> latent -> MiniMax H3 latent upscaler straight to 4K (no pixel upscale)
+    # 1) base clip -> latent -> MiniMax H3 latent upscaler straight to the target size (no pixel upscale)
     comfy.run({
         "1": {"class_type": "LoadVideo", "inputs": {"file": clip_name}},
         "2": {"class_type": "GetVideoComponents", "inputs": {"video": ["1", 0]}},
@@ -181,7 +186,7 @@ def synctile_4k(comfy, prompt, frames, base_clip, key):
         "4": {"class_type": "VAEEncode", "inputs": {"pixels": ["2", 0], "vae": ["3", 0]}},
         "5": {"class_type": "MinimaxH3LatentUpscaler3D", "inputs": {
             "latent": ["4", 0], "model_name": LATENT_UPSCALER, "mode": "target dimensions",
-            "mode.width": OUT_W, "mode.height": OUT_H, "align": 16, "enable_temporal_chunking": True,
+            "mode.width": out_w, "mode.height": out_h, "align": 16, "enable_temporal_chunking": True,
             "force_unload": True, "device": "cuda", "precision": "fp16"}},
         "6": {"class_type": "SaveLatent", "inputs": {"samples": ["5", 0], "filename_prefix": f"{TMP}/{key}_up"}},
     })
@@ -199,7 +204,7 @@ def synctile_4k(comfy, prompt, frames, base_clip, key):
     hl, wl = clean.shape[-2:]
     tw, th = TILE_W // LATENT_STRIDE, TILE_H // LATENT_STRIDE
     xs, ys = positions(wl, tw), positions(hl, th)
-    print(f"  4K latent {tuple(clean.shape)}, {len(xs) * len(ys)} tiles", flush=True)
+    print(f"  {out_w}x{out_h} latent {tuple(clean.shape)}, {len(xs) * len(ys)} tiles", flush=True)
     audio, total = {}, 0.0
     for step in range(START_STEP, STEPS):
         acc, wsum = torch.zeros_like(x), torch.zeros(hl, wl)
@@ -252,6 +257,7 @@ def main():
     ap.add_argument("--name", default="clip")
     ap.add_argument("--seed", type=int, default=SEED)
     ap.add_argument("--sharpen", type=float, default=1.0, help="unsharp mask amount on the 4K result (5x5), 0 = off")
+    ap.add_argument("--size", default=f"{OUT_W}x{OUT_H}", help="4k mode target size WxH, multiples of 16 (e.g. 1920x1088)")
     ap.add_argument("--out", default="synctile_output", help="folder for the finished clips")
     ap.add_argument("--comfy-url", default=os.environ.get("COMFYUI_URL", "http://127.0.0.1:8188"))
     ap.add_argument("--comfy-input", default=os.environ.get("COMFYUI_INPUT"), help="ComfyUI input folder")
@@ -263,6 +269,12 @@ def main():
     if not prompt:
         sys.exit("No prompt.")
     frames = frames_for(a.seconds)
+    try:
+        out_w, out_h = map(int, a.size.lower().split("x"))
+    except ValueError:
+        sys.exit("--size must look like 1920x1088")
+    if out_w % 16 or out_h % 16 or out_w < TILE_W or out_h < TILE_H:
+        sys.exit(f"--size: both sides must be multiples of 16 and at least {TILE_W}x{TILE_H}")
     if a.mode == "4k" and frames > 124:
         print(f"Note: 4K was tested up to 124 frames (5 s). {frames} frames may exceed 24 GB VRAM per tile.", flush=True)
     comfy = Comfy(a.comfy_url, a.comfy_input, a.comfy_output)
@@ -278,15 +290,15 @@ def main():
     print(f"    {sec:.0f} s -> {base}", flush=True)
     log = {"mode": a.mode, "prompt": prompt, "frames": frames, "seed": a.seed, "fast": str(base), "fast_s": round(sec, 1)}
     if a.mode == "4k":
-        print("[2] SyncTile 4K: latent upscale + 9 synchronized tiles (last 3 of 8 steps)", flush=True)
-        raw4k, sec4k = synctile_4k(comfy, prompt, frames, base, key)
-        final = out / f"{key}_4k_{OUT_W}x{OUT_H}.mp4"
+        print(f"[2] SyncTile {out_w}x{out_h}: latent upscale + synchronized tiles (last 3 of 8 steps)", flush=True)
+        raw4k, sec4k = synctile_4k(comfy, prompt, frames, base, key, out_w, out_h)
+        final = out / f"{key}_4k_{out_w}x{out_h}.mp4"
         subprocess.run([ff, "-y", "-loglevel", "error", "-i", str(raw4k), "-i", str(base), "-map", "0:v", "-map", "1:a?",
                         "-c:v", "libx264", "-crf", "12", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac",
                         "-shortest", str(final)], check=True)
         log.update({"4k": str(final), "4k_s": round(sec4k, 1)})
         if a.sharpen > 0:
-            sharp = out / f"{key}_4k_{OUT_W}x{OUT_H}_sharpen{a.sharpen:g}.mp4"
+            sharp = out / f"{key}_4k_{out_w}x{out_h}_sharpen{a.sharpen:g}.mp4"
             subprocess.run([ff, "-y", "-loglevel", "error", "-i", str(final), "-vf", f"unsharp=5:5:{a.sharpen}:5:5:0.0",
                             "-c:v", "libx264", "-crf", "12", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "copy", str(sharp)],
                            check=True)
