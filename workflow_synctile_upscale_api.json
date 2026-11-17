@@ -1,0 +1,224 @@
+{
+ "1": {
+  "class_type": "UNETLoader",
+  "inputs": {
+   "unet_name": "minimax_h3_fl2va_pruned_bf16.safetensors",
+   "weight_dtype": "default"
+  }
+ },
+ "2": {
+  "class_type": "CLIPLoader",
+  "inputs": {
+   "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+   "type": "minimax",
+   "device": "default"
+  }
+ },
+ "3": {
+  "class_type": "VAELoader",
+  "inputs": {
+   "vae_name": "minimax_h3_video_vae_int8_convrot.safetensors"
+  }
+ },
+ "4": {
+  "class_type": "VAELoader",
+  "inputs": {
+   "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+  }
+ },
+ "5": {
+  "class_type": "MiniMaxH3ImageToVideo",
+  "inputs": {
+   "clip": [
+    "2",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ],
+   "prompt": "Describe the video here: the look of the footage, the place, the people and what they do.",
+   "width": 1472,
+   "height": 896,
+   "length": 124
+  }
+ },
+ "7": {
+  "class_type": "KSamplerSelect",
+  "inputs": {
+   "sampler_name": "euler"
+  }
+ },
+ "8": {
+  "class_type": "ManualSigmas",
+  "inputs": {
+   "sigmas": "0.45, 0"
+  }
+ },
+ "9": {
+  "class_type": "BasicGuider",
+  "inputs": {
+   "model": [
+    "1",
+    0
+   ],
+   "conditioning": [
+    "5",
+    0
+   ]
+  }
+ },
+ "20": {
+  "class_type": "LoadVideo",
+  "inputs": {
+   "file": "your_video.mp4"
+  }
+ },
+ "21": {
+  "class_type": "GetVideoComponents",
+  "inputs": {
+   "video": [
+    "20",
+    0
+   ]
+  }
+ },
+ "22": {
+  "class_type": "ImageScale",
+  "inputs": {
+   "image": [
+    "21",
+    0
+   ],
+   "upscale_method": "lanczos",
+   "width": 1344,
+   "height": 768,
+   "crop": "center"
+  }
+ },
+ "23": {
+  "class_type": "VAEEncode",
+  "inputs": {
+   "pixels": [
+    "22",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  }
+ },
+ "24": {
+  "class_type": "VAEEncodeAudio",
+  "inputs": {
+   "audio": [
+    "21",
+    1
+   ],
+   "vae": [
+    "4",
+    0
+   ]
+  }
+ },
+ "25": {
+  "class_type": "MinimaxH3LatentUpscaler3D",
+  "inputs": {
+   "latent": [
+    "23",
+    0
+   ],
+   "model_name": "minimax_h3_latent_upscaler_3d_conv_v1_bf16.safetensors",
+   "mode": "target dimensions",
+   "mode.width": 1920,
+   "mode.height": 1088,
+   "align": 16,
+   "enable_temporal_chunking": true,
+   "force_unload": true,
+   "device": "cuda",
+   "precision": "fp16"
+  }
+ },
+ "30": {
+  "class_type": "SyncTileRefine",
+  "inputs": {
+   "guider": [
+    "9",
+    0
+   ],
+   "sampler": [
+    "7",
+    0
+   ],
+   "sigmas": [
+    "8",
+    0
+   ],
+   "video_latent": [
+    "25",
+    0
+   ],
+   "audio_latent": [
+    "24",
+    0
+   ],
+   "tile_width": 1472,
+   "tile_height": 896,
+   "seed": 20260927
+  }
+ },
+ "31": {
+  "class_type": "H3VAEAyar",
+  "inputs": {
+   "vae": [
+    "3",
+    0
+   ],
+   "mod": 3
+  }
+ },
+ "32": {
+  "class_type": "VAEDecodeTiled",
+  "inputs": {
+   "samples": [
+    "30",
+    0
+   ],
+   "vae": [
+    "31",
+    0
+   ],
+   "tile_size": 1024,
+   "overlap": 128,
+   "temporal_size": 32,
+   "temporal_overlap": 8
+  }
+ },
+ "33": {
+  "class_type": "CreateVideo",
+  "inputs": {
+   "images": [
+    "32",
+    0
+   ],
+   "audio": [
+    "21",
+    1
+   ],
+   "fps": 24
+  }
+ },
+ "34": {
+  "class_type": "SaveVideo",
+  "inputs": {
+   "video": [
+    "33",
+    0
+   ],
+   "filename_prefix": "synctile/upscale",
+   "format": "mp4",
+   "format.codec": "h264"
+  }
+ }
+}

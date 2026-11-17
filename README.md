@@ -11,6 +11,8 @@ The pipeline has these steps:
 
 SyncTile is described in the SyncTile repository: https://github.com/alaintural/synctile-h3 (DOI 10.5281/zenodo.23196934).
 
+You only want the tile step inside ComfyUI? It is also one node with a ready workflow. See "ComfyUI node and workflow".
+
 ## Examples
 
 ![A frame from the 4K example: a woman holds a jar of pickles in a kitchen](cover.webp)
@@ -30,6 +32,65 @@ Download a video to see it at full quality. The browser player of GitHub can sca
 
 This is a research release. The code is the code we use on one Windows machine with one RTX GPU. We did not test it on Linux or macOS. Read "Limits" before you use it.
 
+## ComfyUI node and workflow
+
+You do not need Studio to use SyncTile. The tile step is one ComfyUI node, and a ready workflow comes with it. You give it a video. It gives you the same video at 1080, 2K or 4K.
+
+**Install**
+
+1. Go to `ComfyUI/custom_nodes`.
+2. Run `git clone https://github.com/alaintural/synctile-studio`.
+3. Restart ComfyUI.
+
+No git? Copy `comfy_node_synctile.py`, `comfy_node_vae_settings.py` and `comfy_node_pipe_save.py` into `ComfyUI/custom_nodes`. The result is the same.
+
+You get three nodes: `SyncTileRefine`, `H3VAEAyar` and `H3BoruKaydet`. You also need the MiniMax H3 core nodes, `MinimaxH3LatentUpscaler3D` (Comfyui_Minimax_h3_latent_Upscaler) and these models: `minimax_h3_fl2va_pruned_bf16`, the text encoder, the video VAE, the audio VAE and the latent upscaler (file names in "Requirements").
+
+**Use the workflow**
+
+1. Drag `workflow_synctile_upscale.json` into ComfyUI.
+2. In "Load Video", select your video. It must have an audio track.
+3. In the H3 prompt node, describe the video: the look of the footage, the place, the people and what they do.
+4. In the latent upscaler node, set the size.
+5. Run.
+
+| size | width x height | tiles | time for a 5 s clip on our GPU |
+| --- | --- | --- | --- |
+| 1080 | 1920 x 1088 | 4 | about 2 minutes |
+| 2K | 2560 x 1440 | 4 | about 2 minutes |
+| 4K | 3840 x 2160 | 9 | about 4.5 minutes |
+
+`workflow_synctile_upscale_api.json` is the same workflow in API format, for scripts.
+
+**What the workflow does**
+
+1. It scales the video to 1344x768 and encodes it.
+2. The latent upscaler brings the latent to your size.
+3. `SyncTileRefine` cuts the latent into tiles that overlap, adds one shared noise and samples each tile for one step. After every step it blends the tiles in latent space. That is why you see no seams.
+4. One tiled VAE decode makes the video. The audio of your video is copied.
+
+**Inputs of `SyncTileRefine`**
+
+| input | meaning |
+| --- | --- |
+| `guider` | `BasicGuider` with the H3 model and your prompt |
+| `sampler` | `KSamplerSelect`, "euler" |
+| `sigmas` | `ManualSigmas`, "0.45, 0". The first number is the strength. We use and tested one step |
+| `video_latent` | the latent from the latent upscaler |
+| `audio_latent` | the audio latent of the same clip. H3 is an audio-video model, so it needs one. The audio is not changed |
+| `tile_width`, `tile_height` | 1472 x 896 for horizontal video |
+| `seed` | noise seed |
+
+With the same input, the node gives the same latent as `synctile_4k.py` in Studio. We compared the two: the difference is 0.
+
+**Good to know**
+
+- Tested with 5 second clips (124 frames, 24 fps), horizontal, at the sizes in the table.
+- For vertical video, swap width and height in three nodes: the image scale (768 x 1344), the tiles (896 x 1472) and the upscaler size. We did not test this in the node.
+- The width, height and length of the H3 prompt node are not used here. Only the text counts.
+- The workflow has no eye pass, no face and motion pass and no RTX step. Those are in Studio.
+- Studio gives the latent of the base render to the tile step. The workflow starts from a video file, so a little detail is lost on the way in.
+
 ## Requirements
 
 **Programs**
@@ -46,7 +107,7 @@ This is a research release. The code is the code we use on one Windows machine w
 - `H3MultishotSampler` (ComfyUI-H3-Multishot), only for single-take scenes
 - ComfyUI-H3-Continuity-Studio with its API at `/h3c/api/v1`, for the base pass
 - Core nodes: `LTXVConcatAVLatent`, `LTXVSeparateAVLatent`, `ModelAttentionBackend` ("comfy kitchen attention"), `ManualSigmas`, `DisableNoise`, `LoadLatent`, `SaveLatent`, `LoadVideo`, `GetVideoComponents`, `VAEEncode`, `VAEEncodeAudio`, `VAEDecodeTiled`, `CreateVideo`, `SaveVideo`
-- The two nodes in this package. Copy `comfy_node_vae_settings.py` and `comfy_node_pipe_save.py` into `ComfyUI/custom_nodes` and restart ComfyUI. They give `H3VAEAyar` and `H3BoruKaydet`.
+- The nodes in this package. Clone this repository into `ComfyUI/custom_nodes`, or copy `comfy_node_vae_settings.py` and `comfy_node_pipe_save.py` there, and restart ComfyUI. Studio uses `H3VAEAyar` and `H3BoruKaydet`. `SyncTileRefine` is for the ComfyUI workflow.
 
 **Models** (file names as the scripts use them)
 - `minimax_h3_fl2va_pruned_int8_convrot.safetensors` and `minimax_h3_fl2va_pruned_bf16.safetensors` (SyncTile tiles)
@@ -192,6 +253,7 @@ The release ships 6 prompt lessons in `lessons.json` (no readable text, nobody l
 
 - `continuity.py video.mp4 [out.png]`: one row per cut, the last 4 frames of the shot before and the first 4 frames of the shot after. Use it to check objects, clothes and poses across cuts.
 - `frame_player.html?v=file:///path/video.mp4`: frame-by-frame player with shot and frame numbers. An optional `frame_list.js` gives a list: `VIDS=[{path:"file:///...", name:"...", info:"...", cuts:[0,124]}]`.
+- `comfy_node_synctile.py`: the `SyncTileRefine` node (see "ComfyUI node and workflow").
 - `synctile_4k.py`, `eye_pass.py`, `face_pass.py`, `continuity_latent.py`, `rtx_quad.sh`, `rtx_upscale.py`: the steps that studio.py calls. Each file explains its arguments at the top.
 
 ## Limits
