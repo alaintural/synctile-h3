@@ -11,6 +11,21 @@ The pipeline has these steps:
 
 SyncTile is described in the SyncTile repository: https://github.com/alaintural/synctile-h3 (DOI 10.5281/zenodo.23196934).
 
+## Examples
+
+![A frame from the 4K example: a woman holds a jar of pickles in a kitchen](cover.webp)
+
+The image is one frame from the 4K example. The videos are release files. Each video comes from one scene file in `examples/`, with no edit after the render.
+
+| Video | Scene file | What it shows |
+|---|---|---|
+| [Pickle jar, 4K with RTX](https://github.com/alaintural/synctile-studio/releases/download/v0.1.0/pickle-jar-4k-rtx.mp4) (30 MB) | `examples/demo_pickle_4k.json` | One shot at 3840x2160: SyncTile, the face and motion pass, then the RTX quad pass. |
+| [Pickle jar, 4K](https://github.com/alaintural/synctile-studio/releases/download/v0.1.0/pickle-jar-4k.mp4) (20 MB) | `examples/demo_pickle_4k.json` | The same run before the RTX quad pass. |
+| [Pickle jar, 1080](https://github.com/alaintural/synctile-studio/releases/download/v0.1.0/pickle-jar-1080.mp4) (4 MB) | `examples/demo_pickle.json` | One shot at 1920x1080: SyncTile and the full-frame eye pass. |
+| [Coffee, single take, 720](https://github.com/alaintural/synctile-studio/releases/download/v0.1.0/coffee-single-take-720.mp4) (20 MB) | `examples/demo_coffee_take.json` | One 30 second take from three blocks at 1280x720. No SyncTile and no eye pass. |
+
+Download a video to see it at full quality. The browser player of GitHub can scale it down.
+
 ## Status
 
 This is a research release. The code is the code we use on one Windows machine with one RTX GPU. We did not test it on Linux or macOS. Read "Limits" before you use it.
