@@ -2,16 +2,45 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23196934.svg)](https://doi.org/10.5281/zenodo.23196934)
 
-**4.9x faster local MiniMax H3 generation, and native-resolution 4K (3840 x 2160) through synchronized tiles, on one RTX 4090.**
+**Seam-free 1080p, 2K and 4K for local MiniMax H3 video, through synchronized tiles. A ComfyUI node, a ready workflow and a scene-file pipeline, on one RTX 4090.**
 
-![A MiniMax H3 clip taken to 4K with SyncTile](docs/cover-4k-frame.webp)
+![A frame from the 4K example: a woman holds a jar of pickles in a kitchen](cover.webp)
 
-MiniMax H3 is an open-weights video model that also generates sound. On a 24 GB card it tops out around 1344 x 768, and the default 25 steps take 562 s for a 5.9 s clip. This repo comes out of a series of measured tests on what actually helps:
+MiniMax H3 is an open-weights video model that also generates sound. On a 24 GB card it tops out around 1344 x 768. SyncTile takes that clip up to 4K (3840 x 2160). The MiniMax H3 latent upscaler enlarges the latent. Then overlapping tiles refine it, and their latents are **blended after every sampling step**. One decode makes the video. You get no seams, and the eyes agree between tiles.
 
-- **fast mode:** 8-step distillation LoRA + ComfyUI's int8 attention backend. **562 s -> about 115 s (4.9x)**, picture stays close to the 8-step reference.
-- **4k mode (SyncTile):** the fast clip is enlarged in latent space by the MiniMax H3 latent upscaler, then re-sampled as nine overlapping tiles whose latents are **blended after every sampling step**, and decoded once. No seams, no eye drift between tiles, **about 11 minutes for a 5 s 4K clip**.
+## The current version is 0.2.0
 
-Full write-up with videos: [pixedi.com/lab/minimax-h3-4k-synctile](https://pixedi.com/lab/minimax-h3-4k-synctile). The 4K demo clips are attached to the [v0.1.0 release](../../releases/tag/v0.1.0).
+This repository started in October 2026 with one script, `synctile_h3.py`. Since then the work moved on. The tile step is now a ComfyUI node, and a full pipeline, SyncTile Studio, is built around it. **If you want to use SyncTile today, use the current version.**
+
+| | First version (0.1) | Current version (0.2.0) |
+|---|---|---|
+| How you use it | One script | The `SyncTileRefine` node with a ready workflow, or SyncTile Studio |
+| What you give it | A text prompt | Your own video (node) or a JSON scene file (Studio) |
+| Sizes | 4K | 1080, 2K and 4K. Studio also makes 720 |
+| Tile step | Three steps with the 8-step turbo LoRA | One step with the full bf16 model, no LoRA |
+| Time of the 4K pass, 5 s clip | About 9 minutes | About 4.5 minutes |
+| Faces | No extra pass | Eye pass at 720 and 1080, face and motion pass at 2K and 4K |
+| Last step at 4K | Unsharp mask | RTX Video Super Resolution quad pass (horizontal 4K, in Studio) |
+| Length | One clip, tested at 5 seconds | Many shots with reference images, or one 30 second take |
+
+The two times come from different clips on the same RTX 4090. Read them as a guide.
+
+**You have an older copy?** If you cloned this repository before 17 November 2026, go to its folder and run `git pull`. Then you have the current version.
+
+The first version is not gone. Its script, its clips and its measurements are in [The first version](#the-first-version-01) and in [Results](#results).
+
+## Examples
+
+These videos come from the current version. The image at the top of this page is one frame from the 4K example. The videos are release files. Each video comes from one scene file in `examples/`, with no edit after the render.
+
+| Video | Scene file | What it shows |
+|---|---|---|
+| [Pickle jar, 4K with RTX](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-4k-rtx.mp4) (30 MB) | `examples/demo_pickle_4k.json` | One shot at 3840x2160: SyncTile, the face and motion pass, then the RTX quad pass. |
+| [Pickle jar, 4K](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-4k.mp4) (20 MB) | `examples/demo_pickle_4k.json` | The same run before the RTX quad pass. |
+| [Pickle jar, 1080](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-1080.mp4) (4 MB) | `examples/demo_pickle.json` | One shot at 1920x1080: SyncTile and the full-frame eye pass. |
+| [Coffee, single take, 720](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/coffee-single-take-720.mp4) (20 MB) | `examples/demo_coffee_take.json` | One 30 second take from three blocks at 1280x720. No SyncTile and no eye pass. |
+
+Download a video to see it at full quality. The browser player of GitHub can scale it down.
 
 ## What is in this repository
 
@@ -19,15 +48,7 @@ Full write-up with videos: [pixedi.com/lab/minimax-h3-4k-synctile](https://pixed
 |---|---|---|
 | SyncTile in ComfyUI, on your own video | The `SyncTileRefine` node and a ready workflow | [ComfyUI node and workflow](#comfyui-node-and-workflow) |
 | A full video from a scene file: shots, people, reference images, 720 to 4K | SyncTile Studio | [SyncTile Studio](#synctile-studio) |
-| The first script and the measurements | `synctile_h3.py` | [Results](#results), [Quick start](#quick-start-with-synctile_h3py) |
-
-**New in 0.2.0**
-
-- `SyncTileRefine`: the tile step as one ComfyUI node, with a ready workflow for 1080, 2K and 4K.
-- SyncTile Studio: a pipeline that makes a video from a JSON scene file.
-- `synctile_h3.py --size`: you set the target size, for example 1920x1088.
-
-Studio and the node sample the tiles in one step (sigma 0.45, bf16 model, no LoRA). `synctile_h3.py` uses three steps with the 8-step turbo LoRA. The numbers in "Results" come from `synctile_h3.py`.
+| The first script (fast mode and 4K from a text prompt) and the measurements | `synctile_h3.py` | [The first version](#the-first-version-01), [Results](#results) |
 
 ## ComfyUI node and workflow
 
@@ -106,20 +127,7 @@ The pipeline has these steps:
 3. **Eye pass.** An optional second pass with the identity references at low denoise (0.2, 8 steps). At 720 and 1080 it runs on the full frame. At 2K and 4K it is a face and motion pass: each face and the box with the most motion are cropped, processed at 1280x1280 and laid back over the frame.
 4. **Assembly.** Crop, cut, audio tail (L-cut) and concat with ffmpeg. Horizontal 4K also gets an RTX Video Super Resolution quad pass.
 
-### Examples
-
-![A frame from the 4K example: a woman holds a jar of pickles in a kitchen](cover.webp)
-
-The image is one frame from the 4K example. The videos are release files. Each video comes from one scene file in `examples/`, with no edit after the render.
-
-| Video | Scene file | What it shows |
-|---|---|---|
-| [Pickle jar, 4K with RTX](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-4k-rtx.mp4) (30 MB) | `examples/demo_pickle_4k.json` | One shot at 3840x2160: SyncTile, the face and motion pass, then the RTX quad pass. |
-| [Pickle jar, 4K](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-4k.mp4) (20 MB) | `examples/demo_pickle_4k.json` | The same run before the RTX quad pass. |
-| [Pickle jar, 1080](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-1080.mp4) (4 MB) | `examples/demo_pickle.json` | One shot at 1920x1080: SyncTile and the full-frame eye pass. |
-| [Coffee, single take, 720](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/coffee-single-take-720.mp4) (20 MB) | `examples/demo_coffee_take.json` | One 30 second take from three blocks at 1280x720. No SyncTile and no eye pass. |
-
-Download a video to see it at full quality. The browser player of GitHub can scale it down.
+The example videos are in [Examples](#examples).
 
 ### Use
 
@@ -134,16 +142,6 @@ Requirements, setup, the scene file, the modes and the limits are in [STUDIO.md]
 
 Studio is a research release. The code is the code we use on one Windows machine with one RTX GPU. We did not test it on Linux or macOS. Read "Limits" in `STUDIO.md` before you use it.
 
-## Demo clips from synctile_h3.py (original files, open full screen)
-
-| Clip | What to look at |
-|---|---|
-| [Drone canyon, 3840 x 2160](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/drone-canyon-4k-synctile.mp4) (51 MB) | Fast camera move, kayaker crossing the tile seams |
-| [Café close-up, 3840 x 2160](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/cafe-closeup-4k-synctile.mp4) (22 MB) | Eyes, beard and skin across the seams |
-| [Same café clip through MMH3 Split Upscale](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/cafe-closeup-4k-split-upscale.mp4) | Compare face position and texture in motion |
-| [SeedVR2 7B vs SyncTile, 1:1 crop](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/seedvr2-vs-synctile-crop.mp4) | Left SeedVR2, right SyncTile: texture shimmer |
-| [25 steps vs 8 steps + int8](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/25-steps-vs-8-steps-int8.mp4) | 562 s vs 114 s, same seed |
-
 ## What SyncTile adds
 
 Tiled upscaling is not new. MultiDiffusion (Bar-Tal et al., 2023) showed that diffusion tiles stay coherent if they are fused at every denoising step, and the MiniMax H3 community already has tiled upscalers (MMH3 Split Upscale). What this repo adds:
@@ -152,6 +150,8 @@ Tiled upscaling is not new. MultiDiffusion (Bar-Tal et al., 2023) showed that di
 2. **One shared noise image for the whole canvas**, cut per tile, so overlaps start identical.
 3. **Latent upscaling instead of pixel upscaling as the input**, and **one decode of the full canvas**, so there is no pixel seam to hide.
 4. **Measured, including what did not work** (below), plus a shimmer metric that matched what we saw in playback when a standard sharpness score did not.
+
+The diagram shows the first version: three steps, from sigma 0.878. The current version does the same in one step, from sigma 0.45.
 
 ```
 fast clip 1344x768 ──VAE──> latent ──MiniMax H3 latent upscaler──> 4K latent (3840x2160)
@@ -165,7 +165,7 @@ fast clip 1344x768 ──VAE──> latent ──MiniMax H3 latent upscaler─�
 
 ## Results
 
-All numbers on one RTX 4090, same prompts and seed. Details and caveats in the write-up.
+We made these measurements in October 2026 with the first version (`synctile_h3.py`). They show why the method works. All numbers on one RTX 4090, same prompts and seed. Details and caveats are in the [write-up](https://pixedi.com/lab/minimax-h3-4k-synctile).
 
 ### Speed (1344 x 768, 141 frames)
 
@@ -214,7 +214,29 @@ All numbers on one RTX 4090, same prompts and seed. Details and caveats in the w
 
 The optional last step, an unsharp mask (5 x 5, amount 1.0), was matched to a manual sharpening pass in an editor: fine detail +27%, shimmer 2.1.
 
-## Quick start with synctile_h3.py
+## The first version (0.1)
+
+This is how SyncTile looked in October 2026. We keep it because the measurements in "Results" come from it, and because the script still works.
+
+![A MiniMax H3 clip taken to 4K with the first version](docs/cover-4k-frame.webp)
+
+- It was one script, `synctile_h3.py`, with two modes: `fast` (8-step LoRA and int8 attention, 562 s -> about 115 s) and `4k`.
+- A 5 second 4K clip took about 11 minutes: about 2 for the fast clip and about 9 for the tile pass.
+- It made one clip from a text prompt. It had no node, no pass for faces and no RTX step.
+
+The current version changed all three points. For new work, use the node or Studio.
+
+### Clips of the first version (original files, open full screen)
+
+| Clip | What to look at |
+|---|---|
+| [Drone canyon, 3840 x 2160](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/drone-canyon-4k-synctile.mp4) (51 MB) | Fast camera move, kayaker crossing the tile seams |
+| [Café close-up, 3840 x 2160](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/cafe-closeup-4k-synctile.mp4) (22 MB) | Eyes, beard and skin across the seams |
+| [Same café clip through MMH3 Split Upscale](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/cafe-closeup-4k-split-upscale.mp4) | Compare face position and texture in motion |
+| [SeedVR2 7B vs SyncTile, 1:1 crop](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/seedvr2-vs-synctile-crop.mp4) | Left SeedVR2, right SyncTile: texture shimmer |
+| [25 steps vs 8 steps + int8](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/25-steps-vs-8-steps-int8.mp4) | 562 s vs 114 s, same seed |
+
+### Quick start with synctile_h3.py
 
 Requirements:
 
@@ -240,7 +262,7 @@ python synctile_h3.py 4k   "A drone shot over a red-rock canyon at golden hour" 
 
 Output goes to `./synctile_output/`: the fast 1344 x 768 clip, the 4K clip, the sharpened 4K clip and a JSON log. Intermediate latents land in `<ComfyUI output>/synctile/_tmp/` and can be deleted.
 
-## Limits of synctile_h3.py
+### Limits of synctile_h3.py
 
 - 4K was tested on 5-second clips (124 frames). Longer clips make every tile heavier and may not fit in 24 GB.
 - MiniMax H3 length rule: 17n + 5 frames at 24 fps; `--seconds` is rounded.
