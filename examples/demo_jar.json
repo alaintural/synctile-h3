@@ -1,0 +1,27 @@
+{
+ "name": "demo_jar",
+ "format": "horizontal",
+ "resolution": "1080",
+ "style": "iphone",
+ "camera": "fixed",
+ "eyes": false,
+ "seed": 4100,
+ "people": [
+  {
+   "id": "man",
+   "description": "a man in his 30s with short dark curly hair, a light stubble beard and a mustard yellow t-shirt",
+   "short": "the man with curly hair"
+  }
+ ],
+ "location": "a small home kitchen in the evening, a wooden counter, plain green tiles on the wall, warm light from a lamp above.",
+ "shots": [
+  {
+   "framing": "medium",
+   "who": "man",
+   "alone": true,
+   "action": "The man stands at the counter and holds a big glass jar with no label, full of green pickles, with a gold metal lid, against his chest with his left hand. He twists the lid with his right hand as hard as he can. His face goes tight with effort and his shoulders rise, but the lid does not move. He stops and stares at the jar.",
+   "end": "him holding the closed jar in both hands in front of his chest, the lid still on.",
+   "audio": "The squeak of a hand on a metal lid, one short breath out, quiet kitchen room tone, nobody speaks."
+  }
+ ]
+}

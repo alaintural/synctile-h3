@@ -11,9 +11,130 @@ MiniMax H3 is an open-weights video model that also generates sound. On a 24 GB 
 - **fast mode:** 8-step distillation LoRA + ComfyUI's int8 attention backend. **562 s -> about 115 s (4.9x)**, picture stays close to the 8-step reference.
 - **4k mode (SyncTile):** the fast clip is enlarged in latent space by the MiniMax H3 latent upscaler, then re-sampled as nine overlapping tiles whose latents are **blended after every sampling step**, and decoded once. No seams, no eye drift between tiles, **about 11 minutes for a 5 s 4K clip**.
 
-Full write-up with videos: [pixedi.com/lab/minimax-h3-4k-synctile](https://pixedi.com/lab/minimax-h3-4k-synctile). Demo clips (4K originals) are attached to the [latest release](../../releases).
+Full write-up with videos: [pixedi.com/lab/minimax-h3-4k-synctile](https://pixedi.com/lab/minimax-h3-4k-synctile). The 4K demo clips are attached to the [v0.1.0 release](../../releases/tag/v0.1.0).
 
-## Demo (original files, open full screen)
+## What is in this repository
+
+| You want | Use | Read |
+|---|---|---|
+| SyncTile in ComfyUI, on your own video | The `SyncTileRefine` node and a ready workflow | [ComfyUI node and workflow](#comfyui-node-and-workflow) |
+| A full video from a scene file: shots, people, reference images, 720 to 4K | SyncTile Studio | [SyncTile Studio](#synctile-studio) |
+| The first script and the measurements | `synctile_h3.py` | [Results](#results), [Quick start](#quick-start-with-synctile_h3py) |
+
+**New in 0.2.0**
+
+- `SyncTileRefine`: the tile step as one ComfyUI node, with a ready workflow for 1080, 2K and 4K.
+- SyncTile Studio: a pipeline that makes a video from a JSON scene file.
+- `synctile_h3.py --size`: you set the target size, for example 1920x1088.
+
+Studio and the node sample the tiles in one step (sigma 0.45, bf16 model, no LoRA). `synctile_h3.py` uses three steps with the 8-step turbo LoRA. The numbers in "Results" come from `synctile_h3.py`.
+
+## ComfyUI node and workflow
+
+You do not need Studio to use SyncTile. The tile step is one ComfyUI node, and a ready workflow comes with it. You give it a video. It gives you the same video at 1080, 2K or 4K.
+
+**Install**
+
+1. Go to `ComfyUI/custom_nodes`.
+2. Run `git clone https://github.com/alaintural/synctile-h3`.
+3. Restart ComfyUI.
+
+No git? Copy `comfy_node_synctile.py`, `comfy_node_vae_settings.py` and `comfy_node_pipe_save.py` into `ComfyUI/custom_nodes`. The result is the same.
+
+You get three nodes: `SyncTileRefine`, `H3VAEAyar` and `H3BoruKaydet`. You also need the MiniMax H3 core nodes, `MinimaxH3LatentUpscaler3D` (Comfyui_Minimax_h3_latent_Upscaler) and these models: `minimax_h3_fl2va_pruned_bf16`, the text encoder, the video VAE, the audio VAE and the latent upscaler.
+
+The workflow uses these file names. Change them in the loader nodes if yours are different:
+
+- `minimax_h3_fl2va_pruned_bf16.safetensors`
+- `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors` (text encoder)
+- `minimax_h3_video_vae_int8_convrot.safetensors`, `minimax_h3_audio_vae_fp32.safetensors`
+- `minimax_h3_latent_upscaler_3d_conv_v1_bf16.safetensors`
+
+**Use the workflow**
+
+1. Drag `workflow_synctile_upscale.json` into ComfyUI.
+2. In "Load Video", select your video. It must have an audio track.
+3. In the H3 prompt node, describe the video: the look of the footage, the place, the people and what they do.
+4. In the latent upscaler node, set the size.
+5. Run.
+
+| size | width x height | tiles | time for a 5 s clip on our GPU |
+| --- | --- | --- | --- |
+| 1080 | 1920 x 1088 | 4 | about 2 minutes |
+| 2K | 2560 x 1440 | 4 | about 2 minutes |
+| 4K | 3840 x 2160 | 9 | about 4.5 minutes |
+
+`workflow_synctile_upscale_api.json` is the same workflow in API format, for scripts.
+
+**What the workflow does**
+
+1. It scales the video to 1344x768 and encodes it.
+2. The latent upscaler brings the latent to your size.
+3. `SyncTileRefine` cuts the latent into tiles that overlap, adds one shared noise and samples each tile for one step. After every step it blends the tiles in latent space. That is why you see no seams.
+4. One tiled VAE decode makes the video. The audio of your video is copied.
+
+**Inputs of `SyncTileRefine`**
+
+| input | meaning |
+| --- | --- |
+| `guider` | `BasicGuider` with the H3 model and your prompt |
+| `sampler` | `KSamplerSelect`, "euler" |
+| `sigmas` | `ManualSigmas`, "0.45, 0". The first number is the strength. We use and tested one step |
+| `video_latent` | the latent from the latent upscaler |
+| `audio_latent` | the audio latent of the same clip. H3 is an audio-video model, so it needs one. The audio is not changed |
+| `tile_width`, `tile_height` | 1472 x 896 for horizontal video |
+| `seed` | noise seed |
+
+With the same input, the node gives the same latent as `synctile_4k.py` in Studio. We compared the two: the difference is 0.
+
+**Good to know**
+
+- Tested with 5 second clips (124 frames, 24 fps), horizontal, at the sizes in the table.
+- For vertical video, swap width and height in three nodes: the image scale (768 x 1344), the tiles (896 x 1472) and the upscaler size. We did not test this in the node.
+- The width, height and length of the H3 prompt node are not used here. Only the text counts.
+- The workflow has no eye pass, no face and motion pass and no RTX step. Those are in Studio.
+- Studio gives the latent of the base render to the tile step. The workflow starts from a video file, so a little detail is lost on the way in.
+
+## SyncTile Studio
+
+SyncTile Studio turns a JSON scene file into a MiniMax H3 video. It runs on a local ComfyUI.
+
+The pipeline has these steps:
+
+1. **Base.** The H3 Continuity extension renders all shots at 1344x768 (25 steps, with reference images).
+2. **SyncTile.** For 1080, 2K and 4K, the base latent goes through the MiniMax H3 latent upscaler. Then synchronized tiles refine it in one step. The decode is one tiled VAE decode.
+3. **Eye pass.** An optional second pass with the identity references at low denoise (0.2, 8 steps). At 720 and 1080 it runs on the full frame. At 2K and 4K it is a face and motion pass: each face and the box with the most motion are cropped, processed at 1280x1280 and laid back over the frame.
+4. **Assembly.** Crop, cut, audio tail (L-cut) and concat with ffmpeg. Horizontal 4K also gets an RTX Video Super Resolution quad pass.
+
+### Examples
+
+![A frame from the 4K example: a woman holds a jar of pickles in a kitchen](cover.webp)
+
+The image is one frame from the 4K example. The videos are release files. Each video comes from one scene file in `examples/`, with no edit after the render.
+
+| Video | Scene file | What it shows |
+|---|---|---|
+| [Pickle jar, 4K with RTX](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-4k-rtx.mp4) (30 MB) | `examples/demo_pickle_4k.json` | One shot at 3840x2160: SyncTile, the face and motion pass, then the RTX quad pass. |
+| [Pickle jar, 4K](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-4k.mp4) (20 MB) | `examples/demo_pickle_4k.json` | The same run before the RTX quad pass. |
+| [Pickle jar, 1080](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/pickle-jar-1080.mp4) (4 MB) | `examples/demo_pickle.json` | One shot at 1920x1080: SyncTile and the full-frame eye pass. |
+| [Coffee, single take, 720](https://github.com/alaintural/synctile-h3/releases/download/v0.2.0/coffee-single-take-720.mp4) (20 MB) | `examples/demo_coffee_take.json` | One 30 second take from three blocks at 1280x720. No SyncTile and no eye pass. |
+
+Download a video to see it at full quality. The browser player of GitHub can scale it down.
+
+### Use
+
+```
+python studio.py examples/single_shot.json --dry     # print the prompts only
+python studio.py examples/single_shot.json           # render
+```
+
+Requirements, setup, the scene file, the modes and the limits are in [STUDIO.md](STUDIO.md).
+
+### Status
+
+Studio is a research release. The code is the code we use on one Windows machine with one RTX GPU. We did not test it on Linux or macOS. Read "Limits" in `STUDIO.md` before you use it.
+
+## Demo clips from synctile_h3.py (original files, open full screen)
 
 | Clip | What to look at |
 |---|---|
@@ -23,7 +144,7 @@ Full write-up with videos: [pixedi.com/lab/minimax-h3-4k-synctile](https://pixed
 | [SeedVR2 7B vs SyncTile, 1:1 crop](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/seedvr2-vs-synctile-crop.mp4) | Left SeedVR2, right SyncTile: texture shimmer |
 | [25 steps vs 8 steps + int8](https://github.com/alaintural/synctile-h3/releases/download/v0.1.0/25-steps-vs-8-steps-int8.mp4) | 562 s vs 114 s, same seed |
 
-## What is new here
+## What SyncTile adds
 
 Tiled upscaling is not new. MultiDiffusion (Bar-Tal et al., 2023) showed that diffusion tiles stay coherent if they are fused at every denoising step, and the MiniMax H3 community already has tiled upscalers (MMH3 Split Upscale). What this repo adds:
 
@@ -93,7 +214,7 @@ All numbers on one RTX 4090, same prompts and seed. Details and caveats in the w
 
 The optional last step, an unsharp mask (5 x 5, amount 1.0), was matched to a manual sharpening pass in an editor: fine detail +27%, shimmer 2.1.
 
-## Quick start
+## Quick start with synctile_h3.py
 
 Requirements:
 
@@ -119,24 +240,28 @@ python synctile_h3.py 4k   "A drone shot over a red-rock canyon at golden hour" 
 
 Output goes to `./synctile_output/`: the fast 1344 x 768 clip, the 4K clip, the sharpened 4K clip and a JSON log. Intermediate latents land in `<ComfyUI output>/synctile/_tmp/` and can be deleted.
 
-## Limits
+## Limits of synctile_h3.py
 
 - 4K was tested on 5-second clips (124 frames). Longer clips make every tile heavier and may not fit in 24 GB.
 - MiniMax H3 length rule: 17n + 5 frames at 24 fps; `--seconds` is rounded.
 - The 4K pass re-draws fine detail, so fast-moving objects can move a few pixels against the base clip. Fast water and mist stay as soft as in the base.
 - Refining the last 4 of 8 steps instead of 3 took 2-4 minutes longer, added no visible detail and moved things slightly.
-- This is a script that drives ComfyUI's HTTP API, not a ComfyUI node.
+- `synctile_h3.py` is a script that drives ComfyUI's HTTP API. For a node, see "ComfyUI node and workflow".
 
 ## Safety
+
+This list is about `synctile_h3.py`.
 
 - Plain, readable Python. No compiled code, no network access except your own ComfyUI on localhost, no telemetry, nothing is downloaded.
 - Only `.safetensors` latents are written and read; no pickle files.
 - Writes only to ComfyUI's input and output folders and to `--out`.
 - Tiles are processed one at a time, so peak VRAM equals one 1472 x 896 tile.
 
+The `SyncTileRefine` node is also plain Python. It reads no files, writes no files and uses no network. Studio does more: it stops and starts ComfyUI, and it ships one ONNX file (the YuNet face detector).
+
 ## Model license
 
-This repo contains code only, no model weights. Bring your own MiniMax H3 weights and check the MiniMax H3 license terms for your region and use case. The MIT license below covers this code, not the model.
+This repo contains no MiniMax H3 weights. The only model file here is the YuNet face detector (`face_detection_yunet_2023mar.onnx`, from the OpenCV Zoo, MIT license). Bring your own MiniMax H3 weights and check the MiniMax H3 license terms for your region and use case. The MIT license below covers this code, not the model.
 
 ## Credits
 
@@ -146,18 +271,20 @@ This repo contains code only, no model weights. Bring your own MiniMax H3 weight
 - [Comfyui_Minimax_h3_latent_Upscaler](https://github.com/LBH-123-AI/Comfyui_Minimax_h3_latent_Upscaler) (latent upscaler, MMH3 Split Upscale)
 - [ComfyUI-MiniMaxH3-TeaCache](https://github.com/Icyoung/ComfyUI-MiniMaxH3-TeaCache): in our tests the step counter was not reset when the same settings ran twice, so the second run used no caching; resetting `state` when `step_idx >= total_steps` fixed it
 - [pepikir/minimax-h3-speedup](https://github.com/pepikir/minimax-h3-speedup) for the EasyCache notes
+- ComfyUI-H3-Continuity-Studio and ComfyUI-H3-Multishot: Studio uses them for the base pass and for single-take scenes
+- OpenCV YuNet: the face and motion pass of Studio finds faces with it
 
 ## Citation
 
 If SyncTile helps your work, please cite it (see `CITATION.cff`):
 
 ```
-Tural, A. (2026). SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks (Version 0.1.1). Pixedi AI Lab. Zenodo.
+Tural, A. (2026). SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks (Version 0.2.0). Pixedi AI Lab. Zenodo.
 https://doi.org/10.5281/zenodo.23196934
 ```
 
 ## License
 
-MIT. Copyright (c) 2026 Alain Tural, Pixedi.
+MIT. Copyright (c) 2026 Alain Tural, Pixedi. See `LICENSE` and `CITATION.cff`.
 
 Made by [Alain Tural](https://github.com/alaintural) at [Pixedi AI Lab](https://pixedi.com/lab).

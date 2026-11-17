@@ -1,0 +1,107 @@
+[
+ {
+  "no": 1,
+  "tarih": "2026-11-16",
+  "durum": "onayli",
+  "cozum": "prompt",
+  "sorun": "Readable text on clothes and signs",
+  "ek": "All uniforms, signs and clothes are plain with no readable text or letters.",
+  "unless": [
+   "sign that says",
+   "sign says",
+   "that reads",
+   "which reads",
+   "the text",
+   "the words",
+   "written",
+   "lettering",
+   "logo",
+   "caption",
+   "label"
+  ]
+ },
+ {
+  "no": 2,
+  "tarih": "2026-11-16",
+  "durum": "onayli",
+  "cozum": "prompt",
+  "sorun": "People look into the camera",
+  "ek": "Nobody ever looks into the camera.",
+  "unless": [
+   "into the camera",
+   "at the camera",
+   "to the camera",
+   "the lens",
+   "eye contact",
+   "selfie",
+   "vlog"
+  ]
+ },
+ {
+  "no": 3,
+  "tarih": "2026-11-16",
+  "durum": "onayli",
+  "cozum": "prompt",
+  "sorun": "Comic sound effects and music that nobody asked for",
+  "ek": "Realistic sound only: no comic sound effects, no cartoon sounds, no laugh track, no music.",
+  "unless": [
+   "comic sound",
+   "cartoon sound",
+   "funny sound",
+   "sound effect",
+   "laugh track",
+   "music",
+   "song",
+   "sings",
+   "singing"
+  ]
+ },
+ {
+  "no": 4,
+  "tarih": "2026-11-16",
+  "durum": "onayli",
+  "cozum": "prompt",
+  "sorun": "The character looks at the lens",
+  "ek": "The character never looks at the camera and never makes eye contact with the lens; the eyes stay only on what is in front of the character.",
+  "unless": [
+   "into the camera",
+   "at the camera",
+   "to the camera",
+   "the lens",
+   "eye contact",
+   "selfie",
+   "vlog"
+  ]
+ },
+ {
+  "no": 5,
+  "tarih": "2026-11-16",
+  "durum": "onayli",
+  "cozum": "prompt",
+  "sorun": "A spoken line is repeated or mouthed again",
+  "ek": "Every line is said only once. After the last word the lips stay closed and still to the last frame; nobody repeats or mouths any word.",
+  "unless": [
+   "repeats",
+   "says it again",
+   "says it twice",
+   "twice",
+   "again and again",
+   "mouths"
+  ]
+ },
+ {
+  "no": 6,
+  "tarih": "2026-11-16",
+  "durum": "onayli",
+  "cozum": "prompt",
+  "sorun": "Pimples and spots on the skin",
+  "ek": "Every person has smooth, clear skin with no pimples, no spots and no blemishes.",
+  "unless": [
+   "pimple",
+   "acne",
+   "blemish",
+   "freckle",
+   "scar"
+  ]
+ }
+]

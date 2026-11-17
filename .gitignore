@@ -1,4 +1,13 @@
+config.json
+work/
+media/
+inputs/
+outputs/
 synctile_output/
+frame_list.js
 __pycache__/
-*.latent
+*.pyc
 *.mp4
+*.latent
+*.flac
+*.wav

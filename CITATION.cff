@@ -9,9 +9,9 @@ authors:
 repository-code: "https://github.com/alaintural/synctile-h3"
 url: "https://pixedi.com/lab/minimax-h3-4k-synctile"
 license: MIT
-version: 0.1.1
+version: 0.2.0
 doi: 10.5281/zenodo.23196934
-date-released: 2026-10-06
+date-released: 2026-11-17
 keywords:
   - MiniMax H3
   - video generation
@@ -19,3 +19,18 @@ keywords:
   - tiled diffusion
   - MultiDiffusion
   - ComfyUI
+references:
+  - type: conference-paper
+    title: "MultiDiffusion: Fusing Diffusion Paths for Controlled Image Generation"
+    authors:
+      - family-names: Bar-Tal
+        given-names: Omer
+      - family-names: Yariv
+        given-names: Lior
+      - family-names: Lipman
+        given-names: Yaron
+      - family-names: Dekel
+        given-names: Tali
+    conference:
+      name: "International Conference on Machine Learning (ICML)"
+    year: 2023

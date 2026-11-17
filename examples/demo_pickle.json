@@ -1,0 +1,32 @@
+{
+ "name": "demo_pickle",
+ "format": "horizontal",
+ "resolution": "1080",
+ "style": "iphone",
+ "camera": "fixed",
+ "eyes": true,
+ "seed": 4400,
+ "skip_lessons": [1],
+ "people": [
+  {
+   "id": "girl",
+   "description": "the woman in {img}, in her 20s with curly red hair in a ponytail, fair skin and a plain grey hoodie",
+   "short": "the woman with curly red hair",
+   "ref": [
+    "20261116_demo_ref_woman1.png",
+    "20261116_demo_ref_woman2.png"
+   ]
+  }
+ ],
+ "location": "a small bright apartment kitchen in the morning, a white counter, white cabinets, soft daylight from a big window on the left.",
+ "shots": [
+  {
+   "framing": "medium",
+   "who": "girl",
+   "alone": true,
+   "action": "The woman stands behind the white counter, turned three quarters toward the window, her head, shoulders and hands large in the frame, soft daylight on her face. She holds a big glass jar full of small green pickles, with a gold metal lid, against her chest with her left hand. She twists the gold lid with her right hand as hard as she can, her eyes open and fixed on the lid, her face tight with effort. The lid stays shut. She stops, lifts her head, opens her eyes wide and looks straight ahead across the room toward the window, then breathes out with a tired half smile.",
+   "end": "her holding the closed jar in both hands in front of her chest, the gold lid on the jar, her head up and her eyes open, looking across the room toward the window.",
+   "audio": "The squeak of a hand on a metal lid, one short breath out, quiet kitchen room tone."
+  }
+ ]
+}

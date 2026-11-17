@@ -1,0 +1,20 @@
+{
+ "name": "coffee",
+ "format": "horizontal",
+ "resolution": "1080",
+ "style": "iphone",
+ "camera": "fixed",
+ "eyes": true,
+ "people": [
+  {"id": "host", "ref": ["host_front.jpg", "host_side.jpg", "host_three_quarter.jpg"],
+   "description": "the woman in {img}, with short brown hair and a grey sweater",
+   "short": "a woman with short brown hair"}
+ ],
+ "location": "a small bright kitchen in the morning, white tiles, a window with soft daylight.",
+ "shots": [
+  {"framing": "medium", "who": "host",
+   "action": "<Subject 1> pours coffee into a white cup, smiles and says: \"Good morning.\"",
+   "end": "her holding the cup near her face.",
+   "audio": "Coffee pouring, a quiet kitchen room tone, her voice says the line once."}
+ ]
+}
