@@ -1,0 +1,37 @@
+<!doctype html><meta charset="utf-8"><title>Frame player</title>
+<!-- Usage: frame_player.html?v=file:///path/to/video.mp4
+     Optional frame_list.js next to this file: VIDS=[{path:"file:///...mp4", name:"...", info:"...", cuts:[0,124,248]}]
+     'cuts' = first frame of each shot; without it a shot is 124 frames. -->
+<style>body{background:#111;color:#eee;font:15px system-ui;margin:0;display:flex;height:100vh}
+#l{width:340px;overflow:auto;border-right:1px solid #333;padding:8px;box-sizing:border-box;flex:none}
+#l input{width:100%;box-sizing:border-box;background:#222;color:#eee;border:0;padding:8px;border-radius:6px;margin-bottom:8px}
+#l div{padding:7px 8px;border-radius:6px;cursor:pointer;word-break:break-all;font-size:13px}#l div:hover{background:#222}#l div.a{background:#2d4a7a}
+#l small{opacity:.55;display:block}
+main{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0}
+video{max-height:80vh;max-width:100%;margin-top:10px;background:#000}#b{margin:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+button{background:#333;color:#eee;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}#i{font-size:20px;min-width:330px;text-align:center}
+input[type=range]{width:min(700px,90%)}#n{margin-top:8px;opacity:.8}</style>
+<div id="l"><input id="q" placeholder="Search videos..."><span id="ls"></span></div>
+<main><div id="n"></div><video id="v" preload="auto" loop></video>
+<input id="s" type="range" min="0" value="0">
+<div id="b"><button onclick="g(-24)">-1 s</button><button onclick="g(-1)">&#9664; frame</button><button onclick="p()">&#9654;/&#10074;&#10074;</button><button onclick="g(1)">frame &#9654;</button><button onclick="g(24)">+1 s</button><button onclick="h()">speed <span id="hz">1</span>x</button><span id="i"></span></div>
+<div style="opacity:.6">Keys: left/right = frame, Shift+left/right = second, space = play, up/down = change video. Give the frame as "shot 2, frame 40".</div></main>
+<script>var VIDS=[]</script><script src="frame_list.js"></script>
+<script>
+const F=24,C=124,$=x=>document.getElementById(x),v=$('v'),s=$('s'),i=$('i');let cuts=null,idx=-1;
+const k=()=>Math.round(v.currentTime*F);
+function shot(n){if(!cuts)return[Math.floor(n/C)+1,n%C];let c=0;while(c+1<cuts.length&&n>=cuts[c+1])c++;return[c+1,n-cuts[c]]}
+function show(){const n=k(),[c,kk]=shot(n);i.textContent=`frame ${n}  |  shot ${c}, frame ${kk}  |  ${v.currentTime.toFixed(2)} s`;s.value=n}
+function g(d){v.pause();v.currentTime=Math.max(0,(k()+d)/F+0.001)}
+function p(){v.paused?v.play():v.pause()}
+function h(){const r=[1,0.5,0.25];v.playbackRate=r[(r.indexOf(v.playbackRate)+1)%3];$('hz').textContent=v.playbackRate}
+function open_(path,name,c){v.src=path;cuts=c||null;$('n').textContent=name||decodeURIComponent(path.split('/').pop());document.title=$('n').textContent;list()}
+function pick(j){if(j<0||j>=VIDS.length)return;idx=j;open_(VIDS[j].path,VIDS[j].name,VIDS[j].cuts);v.play().catch(()=>{})}
+function list(){const f=$('q').value.toLowerCase();$('ls').innerHTML=VIDS.map((x,j)=>x.name.toLowerCase().includes(f)?`<div class="${j==idx?'a':''}" onclick="pick(${j})">${x.name}<small>${x.info||''}</small></div>`:'').join('')}
+$('q').oninput=list;
+v.onloadedmetadata=()=>{s.max=Math.round(v.duration*F)-1;show()};v.ontimeupdate=v.onseeked=show;
+s.oninput=()=>{v.pause();v.currentTime=s.value/F+0.001};
+onkeydown=e=>{if(e.target.id=='q')return;if(e.key=='ArrowRight')g(e.shiftKey?F:1);else if(e.key=='ArrowLeft')g(e.shiftKey?-F:-1);else if(e.key=='ArrowDown'){pick(idx+1);e.preventDefault()}else if(e.key=='ArrowUp'){pick(idx-1);e.preventDefault()}else if(e.key==' '){p();e.preventDefault()}}
+const q=new URLSearchParams(location.search).get('v');
+if(q){idx=VIDS.findIndex(x=>x.path==q);idx>=0?pick(idx):open_(q)}else if(VIDS.length)pick(0);else list();
+</script>

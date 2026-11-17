@@ -1,0 +1,12 @@
+config.json
+work/
+media/
+inputs/
+outputs/
+frame_list.js
+__pycache__/
+*.pyc
+*.mp4
+*.latent
+*.flac
+*.wav

@@ -1,0 +1,86 @@
+{
+ "name": "demo_jar_story",
+ "format": "horizontal",
+ "resolution": "1080",
+ "style": "iphone",
+ "camera": "handheld",
+ "eyes": false,
+ "seed": 4200,
+ "people": [
+  {
+   "id": "man",
+   "description": "the man in {img}, in his 30s with short dark curly hair, a light stubble beard and a plain mustard yellow t-shirt",
+   "short": "the man with curly hair",
+   "ref": [
+    "20261116_demo_ref_man1.png",
+    "20261116_demo_ref_man2.png"
+   ]
+  },
+  {
+   "id": "woman",
+   "description": "a woman in her 30s with long black hair in a ponytail, a plain white t-shirt and blue jeans",
+   "short": "the woman with the ponytail"
+  },
+  {
+   "id": "jar",
+   "description": "the big glass jar full of small green pickles, with a gold metal lid, held by two female hands in front of a plain white t-shirt",
+   "short": "the glass jar of pickles"
+  }
+ ],
+ "location": "a small home kitchen in the evening, a wooden counter, plain green tiles on the wall, warm light from a lamp above.",
+ "shots": [
+  {
+   "framing": "medium",
+   "who": "man",
+   "alone": true,
+   "action": "The man stands at the counter and holds the big glass jar full of small green pickles, with a gold metal lid, against his chest with his left hand. He twists the lid with his right hand as hard as he can. His face goes tight with effort and his shoulders rise, but the lid does not move. He stops and stares at the jar.",
+   "end": "him holding the closed jar in both hands in front of his chest, the gold lid still on.",
+   "audio": "The squeak of a hand on a metal lid, one short breath out, quiet kitchen room tone, nobody speaks."
+  },
+  {
+   "framing": "close",
+   "who": "man",
+   "alone": true,
+   "start": "he holds the big glass jar full of small green pickles, with a gold metal lid, closed, in both hands in front of his chest, the gold lid still on.",
+   "action": "He grips the gold lid of the big jar of green pickles again with his right hand and twists with his whole body, his teeth clenched and his eyes shut. The lid does not move. He stops, out of breath.",
+   "end": "him out of breath, the closed big jar of green pickles in both hands in front of his chest, the gold lid still on.",
+   "audio": "A strained breath through the nose, the squeak of a hand on a metal lid, quiet kitchen room tone, nobody speaks."
+  },
+  {
+   "framing": "wide",
+   "summary": "A woman walks into the kitchen and the man gives her the closed jar.",
+   "action": "From the first frame <Subject 1> stands at the counter, the big glass jar full of small green pickles, with a gold metal lid, closed, in both hands in front of his chest. Then a woman in her 30s with long black hair in a ponytail, a plain white t-shirt and blue jeans walks in from the left and stops next to him. She holds out her right hand with the palm up. He looks at her, then slowly gives her the closed jar.",
+   "end": "the woman holding the closed jar in both hands, the man standing next to her with empty hands.",
+   "audio": "Soft footsteps on a tile floor, quiet kitchen room tone, nobody speaks."
+  },
+  {
+   "framing": "detail",
+   "who": "jar",
+   "alone": true,
+   "start": "the woman holds the closed jar in both hands, the gold lid still on.",
+   "action": "Her left hand holds the glass jar still. Her right hand turns the gold lid one time, calmly. The lid opens at once and she lifts it off the jar.",
+   "end": "the open jar in her left hand and the gold lid in her right hand.",
+   "audio": "One soft pop of a vacuum lid, quiet kitchen room tone, nobody speaks.",
+   "memory": 3
+  },
+  {
+   "framing": "close",
+   "who": "man",
+   "alone": true,
+   "start": "he stands at the counter, his arms down at his sides.",
+   "action": "He stares to the side, off frame, with his mouth slightly open. He blinks slowly and his eyebrows go up.",
+   "end": "him frozen with his mouth slightly open and his eyebrows up.",
+   "audio": "Quiet kitchen room tone, nobody speaks."
+  },
+  {
+   "framing": "two",
+   "summary": "The woman gives the open jar to the man and walks out.",
+   "action": "From the first frame a woman in her 30s with long black hair in a ponytail, a plain white t-shirt and blue jeans stands and holds the open jar of small green pickles in her left hand at chest height, and holds the gold lid in her right hand, and <Subject 1> stands next to her, his arms down at his sides. She puts the open jar into his hands and walks out to the left with the gold lid in her right hand. He looks down at the open jar and says: \"I loosened it.\"",
+   "end": "him alone at the counter, the open jar held still in both hands at chest height, his two hands on the sides of the glass.",
+   "audio": "Soft footsteps going away, his voice says the line once, quiet kitchen room tone."
+  }
+ ],
+ "skip_lessons": [
+  1
+ ]
+}

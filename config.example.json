@@ -1,0 +1,15 @@
+{
+  "comfyui_dir": "../ComfyUI",
+  "comfyui_python": "",
+  "comfyui_input_dir": "",
+  "comfyui_url": "http://127.0.0.1:8188",
+  "comfyui_extra_args": ["--use-sage-attention"],
+  "media_dir": "./media",
+  "continuity_input_dir": "./inputs",
+  "continuity_output_dir": "./outputs",
+  "continuity_profile": "h3-25-ref",
+  "work_dir": "./work",
+  "lessons_file": "./lessons.json",
+  "bash": "",
+  "open_command": []
+}

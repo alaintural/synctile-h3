@@ -1,0 +1,31 @@
+{
+ "name": "office_talk",
+ "format": "horizontal",
+ "resolution": "720",
+ "style": "sitcom",
+ "camera": "handheld",
+ "eyes": true,
+ "people": [
+  {"id": "boss", "ref": ["boss_front.jpg", "boss_side.jpg", "boss_three_quarter.jpg"],
+   "description": "the man in {img}, with grey hair and a dark blue suit",
+   "short": "a man with grey hair"},
+  {"id": "intern", "description": "a young woman with long black hair and a yellow cardigan",
+   "short": "the young woman"}
+ ],
+ "location": "a small open-plan office, desks with plants, warm afternoon light.",
+ "shots": [
+  {"framing": "wide",
+   "action": "<Subject 1> walks to the desk of the young woman with a coffee mug in his right hand.",
+   "end": "him standing next to her desk, the mug in his right hand.",
+   "audio": "Office room tone, keyboard clicks, nobody speaks."},
+  {"framing": "close", "who": "boss",
+   "start": "he stands next to her desk, the mug in his right hand.",
+   "action": "He looks at her screen and says: \"Is this the final version?\"",
+   "end": "him waiting for an answer, the mug in his right hand.",
+   "audio": "His voice says the line once, quiet office room tone."},
+  {"framing": "reverse", "who": "intern",
+   "start": "he stands next to her desk, the mug in his right hand.",
+   "action": "She turns her chair to him and nods.",
+   "audio": "Chair creak, quiet office room tone, nobody speaks.", "seconds": 4, "audio_tail": 1}
+ ]
+}

@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use SyncTile Studio, please cite it as below. Please also cite SyncTile (DOI below)."
+title: "SyncTile Studio: scene-file pipeline for MiniMax H3 video with SyncTile 4K refinement"
+type: software
+authors:
+  - family-names: Tural
+    given-names: Alain
+    affiliation: Pixedi
+license: MIT
+version: 0.1.0
+keywords:
+  - MiniMax H3
+  - video generation
+  - 4K
+  - tiled diffusion
+  - MultiDiffusion
+  - ComfyUI
+references:
+  - type: software
+    title: "SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks"
+    authors:
+      - family-names: Tural
+        given-names: Alain
+    repository-code: "https://github.com/alaintural/synctile-h3"
+    doi: 10.5281/zenodo.23196934
+    version: 0.1.1
+  - type: conference-paper
+    title: "MultiDiffusion: Fusing Diffusion Paths for Controlled Image Generation"
+    authors:
+      - family-names: Bar-Tal
+        given-names: Omer
+      - family-names: Yariv
+        given-names: Lior
+      - family-names: Lipman
+        given-names: Yaron
+      - family-names: Dekel
+        given-names: Tali
+    conference:
+      name: "International Conference on Machine Learning (ICML)"
+    year: 2023

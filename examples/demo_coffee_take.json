@@ -1,0 +1,44 @@
+{
+ "name": "demo_coffee_take",
+ "format": "horizontal",
+ "resolution": "720",
+ "style": "iphone",
+ "camera": "handheld",
+ "eyes": false,
+ "seed": 4300,
+ "single_take": true,
+ "people": [
+  {
+   "id": "girl",
+   "description": "a woman in her 20s with curly red hair, a grey hoodie and striped pyjama pants",
+   "short": "the woman with curly red hair"
+  }
+ ],
+ "location": "a small apartment in the morning, a kitchen corner that opens to a living room with a green sofa, soft daylight from a big window.",
+ "shots": [
+  {
+   "framing": "medium",
+   "who": "girl",
+   "seconds": 10,
+   "action": "The woman stands at the kitchen counter and pours coffee from a glass pot into a white mug until the mug is full to the very brim. She puts the pot down and lifts the full mug with both hands, very slowly.",
+   "end": "her holding the full white mug with both hands at chest height, her eyes fixed on the mug.",
+   "audio": "Coffee pouring, a glass pot put down on a counter, quiet morning room tone, nobody speaks."
+  },
+  {
+   "framing": "medium",
+   "who": "girl",
+   "seconds": 10,
+   "action": "She still holds the full white mug with both hands at chest height, her eyes fixed on the mug. She walks toward the green sofa with tiny careful steps, her lips pressed together. The camera follows her from the side.",
+   "end": "her standing in front of the green sofa, the full white mug in both hands at chest height.",
+   "audio": "Slow soft footsteps on a wooden floor, quiet morning room tone, nobody speaks."
+  },
+  {
+   "framing": "medium",
+   "who": "girl",
+   "seconds": 10,
+   "action": "She stands in front of the green sofa, the full white mug in both hands at chest height. She lowers herself onto the green sofa very slowly and never takes her eyes off the mug. She sits, breathes out with relief and smiles. Then she takes one careful sip.",
+   "end": "her sitting on the green sofa, the white mug in both hands near her face, smiling.",
+   "audio": "A sofa cushion creak, one relieved breath out, a small sip, quiet morning room tone, nobody speaks."
+  }
+ ]
+}
