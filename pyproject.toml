@@ -1,0 +1,16 @@
+[project]
+name = "synctile-h3"
+description = "SyncTileRefine takes a MiniMax H3 video to 1080p, 2K or 4K on one 24 GB card. Overlapping tiles are blended in latent space after every sampling step, so the result has no seams. A ready workflow is included."
+version = "0.2.0"
+license = { file = "LICENSE" }
+dependencies = ["torch", "safetensors"]
+
+[project.urls]
+Repository = "https://github.com/alaintural/synctile-h3"
+Documentation = "https://github.com/alaintural/synctile-h3#readme"
+"Bug Tracker" = "https://github.com/alaintural/synctile-h3/issues"
+
+[tool.comfy]
+PublisherId = "alaintural"
+DisplayName = "SyncTile for MiniMax H3"
+Icon = ""
