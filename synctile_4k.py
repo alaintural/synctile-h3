@@ -1,5 +1,5 @@
 """SyncTile pass: base latent -> MiniMax H3 latent upscaler -> synchronized tiles -> one decode.
-Tail model bf16 without LoRA, one step from sigma 0.45 to 0.
+Tail model int8 without LoRA, one step from sigma 0.45 to 0. SYNCTILE_MODEL=<file> selects another model (for example the bf16 file).
 
     python synctile_4k.py [girdi|yuks|karo|coz ...]     (empty = girdi yuks karo coz when SYNCTILE_INPUT is set)
 
@@ -26,7 +26,7 @@ import h3_engine as h
 import settings as S
 
 KEY = os.environ.get("SYNCTILE_KEY", "synctile")
-BF16 = "minimax_h3_fl2va_pruned_bf16.safetensors"
+TILE_MODEL = os.environ.get("SYNCTILE_MODEL", "minimax_h3_fl2va_pruned_int8_convrot.safetensors")
 SIGMA_KUYRUK = [float(x) for x in os.environ.get("SYNCTILE_SIGMA", "0.45,0").split(",")]
 S0 = SIGMA_KUYRUK[0]
 SES_OLCEK = 4.0
@@ -88,7 +88,7 @@ def karo_grafigi(vin, ain, sig_a, sig_b, onek):
     g = h.temel(PROMPT, KARE, h.KW, h.KH, h.SEED)
     for n in ("L", "CK", "6"):
         g.pop(n)
-    g["1"]["inputs"]["unet_name"] = BF16
+    g["1"]["inputs"]["unet_name"] = TILE_MODEL
     g["9"]["inputs"]["model"] = ["1", 0]
     g["8"] = {"class_type": "ManualSigmas", "inputs": {"sigmas": f"{sig_a}, {sig_b}"}}
     g["7"]["inputs"]["sampler_name"] = "euler"

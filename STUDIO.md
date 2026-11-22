@@ -21,7 +21,7 @@ This is the manual of SyncTile Studio. For what Studio is and for example videos
 - The nodes in this package. Clone this repository into `ComfyUI/custom_nodes`, or copy `comfy_node_vae_settings.py` and `comfy_node_pipe_save.py` there, and restart ComfyUI. Studio uses `H3VAEAyar` and `H3BoruKaydet`. `SyncTileRefine` is for the ComfyUI workflow.
 
 **Models** (file names as the scripts use them)
-- `minimax_h3_fl2va_pruned_int8_convrot.safetensors` and `minimax_h3_fl2va_pruned_bf16.safetensors` (SyncTile tiles)
+- `minimax_h3_fl2va_pruned_int8_convrot.safetensors` (also for the SyncTile tiles). Optional: set `SYNCTILE_MODEL=minimax_h3_fl2va_pruned_bf16.safetensors` to use the 38 GB file for the tiles. In our test we saw no difference in this step, and it took more time and more RAM.
 - `minimax_h3_ref2va_pruned_int8_convrot.safetensors` (eye pass)
 - `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors` (text encoder)
 - `minimax_h3_video_vae_int8_convrot.safetensors`, `minimax_h3_audio_vae_fp32.safetensors`

@@ -8,20 +8,20 @@
 
 MiniMax H3 is an open-weights video model that also generates sound. On a 24 GB card it tops out around 1344 x 768. SyncTile takes that clip up to 4K (3840 x 2160). The MiniMax H3 latent upscaler enlarges the latent. Then overlapping tiles refine it, and their latents are **blended after every sampling step**. One decode makes the video. You get no seams, and the eyes agree between tiles.
 
-## The current version is 0.2.0
+## The current version is 0.3.0
 
 This repository started in October 2026 with one script, `synctile_h3.py`. Since then the work moved on. The tile step is now a ComfyUI node, and a full pipeline, SyncTile Studio, is built around it. **If you want to use SyncTile today, use the current version.**
 
-| | First version (0.1) | Current version (0.2.0) |
+| | First version (0.1) | Current version (0.3.0) |
 |---|---|---|
 | How you use it | One script | The `SyncTileRefine` node with a ready workflow, or SyncTile Studio |
 | What you give it | A text prompt | Your own video (node) or a JSON scene file (Studio) |
 | Sizes | 4K | 1080, 2K and 4K. Studio also makes 720 |
-| Tile step | Three steps with the 8-step turbo LoRA | One step with the full bf16 model, no LoRA |
-| Time of the 4K pass, 5 s clip | About 9 minutes | About 4.5 minutes |
+| Tile step | Three steps with the 8-step turbo LoRA | One step, no LoRA |
+| Time of the 4K pass, 5 s clip | About 9 minutes | About 3.5 minutes |
 | Faces | No extra pass | Eye pass at 720 and 1080, face and motion pass at 2K and 4K |
 | Last step at 4K | Unsharp mask | RTX Video Super Resolution quad pass (horizontal 4K, in Studio) |
-| Length | One clip, tested at 5 seconds | Many shots with reference images, or one 30 second take |
+| Length | One clip, tested at 5 seconds | Many shots with reference images, or one 30 second take. The node refines a 30 second clip in time windows |
 
 The two times come from different clips on the same RTX 4090. Read them as a guide.
 
@@ -60,16 +60,18 @@ You do not need Studio to use SyncTile. The tile step is one ComfyUI node, and a
 2. Run `git clone https://github.com/alaintural/synctile-h3`.
 3. Restart ComfyUI.
 
-No git? Copy `comfy_node_synctile.py`, `comfy_node_vae_settings.py` and `comfy_node_pipe_save.py` into `ComfyUI/custom_nodes`. The result is the same.
+No git? Copy `comfy_node_synctile.py`, `comfy_node_stream_save.py`, `comfy_node_vae_settings.py` and `comfy_node_pipe_save.py` into `ComfyUI/custom_nodes`. The result is the same.
 
-You get three nodes: `SyncTileRefine`, `H3VAEAyar` and `H3BoruKaydet`. You also need the MiniMax H3 core nodes, `MinimaxH3LatentUpscaler3D` (Comfyui_Minimax_h3_latent_Upscaler) and these models: `minimax_h3_fl2va_pruned_bf16`, the text encoder, the video VAE, the audio VAE and the latent upscaler.
+You get four nodes: `SyncTileRefine`, `SyncTileStreamSave`, `H3VAEAyar` and `H3BoruKaydet`. You also need the MiniMax H3 core nodes, `MinimaxH3LatentUpscaler3D` (Comfyui_Minimax_h3_latent_Upscaler) and these models: `minimax_h3_fl2va_pruned_int8_convrot`, the text encoder, the video VAE, the audio VAE and the latent upscaler.
 
 The workflow uses these file names. Change them in the loader nodes if yours are different:
 
-- `minimax_h3_fl2va_pruned_bf16.safetensors`
+- `minimax_h3_fl2va_pruned_int8_convrot.safetensors` (20 GB)
 - `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors` (text encoder)
 - `minimax_h3_video_vae_int8_convrot.safetensors`, `minimax_h3_audio_vae_fp32.safetensors`
 - `minimax_h3_latent_upscaler_3d_conv_v1_bf16.safetensors`
+
+**Which H3 model?** The workflow uses the int8 file (20 GB). You can also select `minimax_h3_fl2va_pruned_bf16.safetensors` (38 GB) in the model loader. We compared the two in this step at 1080 and at 4K, with one scene. We saw no difference. The bf16 file took 26% to 60% more time and 10 to 28 GB more RAM.
 
 **Use the workflow**
 
@@ -83,7 +85,7 @@ The workflow uses these file names. Change them in the loader nodes if yours are
 | --- | --- | --- | --- |
 | 1080 | 1920 x 1088 | 4 | about 2 minutes |
 | 2K | 2560 x 1440 | 4 | about 2 minutes |
-| 4K | 3840 x 2160 | 9 | about 4.5 minutes |
+| 4K | 3840 x 2160 | 9 | about 3.5 minutes |
 
 `workflow_synctile_upscale_api.json` is the same workflow in API format, for scripts.
 
@@ -92,7 +94,7 @@ The workflow uses these file names. Change them in the loader nodes if yours are
 1. It scales the video to 1344x768 and encodes it.
 2. The latent upscaler brings the latent to your size.
 3. `SyncTileRefine` cuts the latent into tiles that overlap, adds one shared noise and samples each tile for one step. After every step it blends the tiles in latent space. That is why you see no seams.
-4. One tiled VAE decode makes the video. The audio of your video is copied.
+4. `SyncTileStreamSave` decodes the latent and writes the mp4 at the same time. The audio of your video is copied.
 
 **Inputs of `SyncTileRefine`**
 
@@ -105,16 +107,39 @@ The workflow uses these file names. Change them in the loader nodes if yours are
 | `audio_latent` | the audio latent of the same clip. H3 is an audio-video model, so it needs one. The audio is not changed |
 | `tile_width`, `tile_height` | 1472 x 896 for horizontal video |
 | `seed` | noise seed |
+| `window_frames` | optional, for long clips: the length of one time window in frames (124, 141 or 243). 0 = off |
+| `window_overlap` | frames that two neighbour windows share (22, 39 or 56). 39 is the default |
 
 With the same input, the node gives the same latent as `synctile_4k.py` in Studio. We compared the two: the difference is 0.
 
 **Good to know**
 
-- Tested with 5 second clips (124 frames, 24 fps), horizontal, at the sizes in the table.
+- Tested with 5 second clips (124 frames, 24 fps), horizontal, at the sizes in the table. Long clips: see [Long clips and less memory](#long-clips-and-less-memory).
 - For vertical video, swap width and height in three nodes: the image scale (768 x 1344), the tiles (896 x 1472) and the upscaler size. We did not test this in the node.
 - The width, height and length of the H3 prompt node are not used here. Only the text counts.
 - The workflow has no eye pass, no face and motion pass and no RTX step. Those are in Studio.
 - Studio gives the latent of the base render to the tile step. The workflow starts from a video file, so a little detail is lost on the way in.
+
+## Long clips and less memory
+
+New in 0.3.0. Two changes let the node work on a 30 second clip, and on a card with less VRAM.
+
+**Time windows.** Set `window_frames` in `SyncTileRefine`. The node then also cuts the clip on the time axis. Each window is refined alone, and the windows are blended after every step, the same way as the tiles. VRAM use does not grow with the length of the clip. The audio of each window is the audio of the same seconds.
+
+- Use a clip of 17k+5 frames (for example 124, 362 or 719 frames at 24 fps). If the length is different, the node tells you the nearest good length.
+- We use `window_frames` 124 and `window_overlap` 39.
+
+**Streamed save.** `VAEDecodeTiled` keeps all decoded frames in RAM as float32. For a 30 second 1080 clip, our ComfyUI process used 93 GB of RAM. `SyncTileStreamSave` gives the H3 VAE an output that sends each finished part to ffmpeg. RAM use then does not grow with the length of the clip. The workflow uses this node.
+
+| test (RTX 4090, 1920 x 1088, int8 model) | frames | time | ComfyUI RAM |
+| --- | --- | --- | --- |
+| 15 s, windows 124 / 39, streamed save | 362 | 380 s | about 53 GB |
+| 30 s, windows 124 / 39, streamed save | 719 | 580 s | about 62 GB, no growth during the decode |
+| 30 s, windows 124 / 39, `VAEDecodeTiled` | 719 | 880 s (with model load) | 93 GB |
+
+Most of the RAM in this table holds the models. The 15 s output of `SyncTileStreamSave` and of `VAEDecodeTiled` differ by 41.8 dB PSNR. Both files are lossy mp4, so this is not proof that the frames are the same.
+
+**A 10 to 12 GB VRAM budget.** We started ComfyUI with `--reserve-vram 14` on our 24 GB card and used tiles of 768 x 448. A 15 s 1080 clip with time windows then finished in 460 s, and ComfyUI used about 11 GB of VRAM. We did not test this on a real 12 GB card.
 
 ## SyncTile Studio
 
@@ -295,13 +320,19 @@ This repo contains no MiniMax H3 weights. The only model file here is the YuNet 
 - [pepikir/minimax-h3-speedup](https://github.com/pepikir/minimax-h3-speedup) for the EasyCache notes
 - ComfyUI-H3-Continuity-Studio and ComfyUI-H3-Multishot: Studio uses them for the base pass and for single-take scenes
 - OpenCV YuNet: the face and motion pass of Studio finds faces with it
+- FreeNoise: Qiu et al., *FreeNoise: Tuning-Free Longer Video Diffusion via Noise Rescheduling*, ICLR 2024. The time windows use the same idea of windows that overlap and are blended
+
+## Used by
+
+- [NyckM/Bruxosdovfx-SyncTile-MiniMax-H3-v5.4](https://github.com/NyckM/Bruxosdovfx-SyncTile-MiniMax-H3-v5.4)
+- [zeroleloushe/H3ZeroStudio](https://github.com/zeroleloushe/H3ZeroStudio)
 
 ## Citation
 
 If SyncTile helps your work, please cite it (see `CITATION.cff`):
 
 ```
-Tural, A. (2026). SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks (Version 0.2.0). Pixedi AI Lab. Zenodo.
+Tural, A. (2026). SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks (Version 0.3.0). Pixedi AI Lab. Zenodo.
 https://doi.org/10.5281/zenodo.23196934
 ```
 

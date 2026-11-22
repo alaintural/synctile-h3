@@ -1,7 +1,7 @@
 {
  "id": "e06d007f-d59c-4b2a-95c8-53c990db3f36",
  "revision": 0,
- "last_node_id": 34,
+ "last_node_id": 40,
  "last_link_id": 22,
  "nodes": [
   {
@@ -79,11 +79,11 @@
     "Node name for S&R": "UNETLoader"
    },
    "widgets_values": [
-    "minimax_h3_fl2va_pruned_bf16.safetensors",
+    "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
     "default"
    ],
    "widgets_values_named": {
-    "unet_name": "minimax_h3_fl2va_pruned_bf16.safetensors",
+    "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
     "weight_dtype": "default"
    }
   },
@@ -1571,6 +1571,22 @@
       "name": "seed"
      },
      "link": null
+    },
+    {
+     "name": "window_frames",
+     "type": "INT",
+     "widget": {
+      "name": "window_frames"
+     },
+     "link": null
+    },
+    {
+     "name": "window_overlap",
+     "type": "INT",
+     "widget": {
+      "name": "window_overlap"
+     },
+     "link": null
     }
    ],
    "outputs": [
@@ -1600,7 +1616,9 @@
     1472,
     896,
     20260927,
-    "fixed"
+    "fixed",
+    0,
+    39
    ],
    "widgets_values_named": {
     "tile_width": 1472,
@@ -1689,349 +1707,38 @@
    }
   },
   {
-   "id": 32,
-   "type": "VAEDecodeTiled",
+   "id": 40,
+   "type": "SyncTileStreamSave",
    "pos": [
     2471.337109375,
     130
    ],
    "size": [
-    280.409765625,
-    150
+    340,
+    180
    ],
    "flags": {},
    "order": 16,
    "mode": 0,
-   "showAdvanced": null,
    "inputs": [
     {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "\u00f6rnekler",
-     "locked": null,
-     "name": "samples",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "LATENT",
-     "pos": null,
-     "link": 18
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "vae",
-     "locked": null,
      "name": "vae",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
      "type": "VAE",
-     "pos": null,
      "link": 19
     },
     {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "d\u00f6\u015feme_boyutu",
-     "locked": null,
-     "name": "tile_size",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "INT",
-     "widget": {
-      "name": "tile_size"
-     },
-     "link": null
+     "name": "samples",
+     "type": "LATENT",
+     "link": 18
     },
     {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "\u00f6rt\u00fc\u015fme",
-     "locked": null,
-     "name": "overlap",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "INT",
-     "widget": {
-      "name": "overlap"
-     },
-     "link": null
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "zamansal_boyut",
-     "locked": null,
-     "name": "temporal_size",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "INT",
-     "widget": {
-      "name": "temporal_size"
-     },
-     "link": null
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "zamansal_\u00f6rt\u00fc\u015fme",
-     "locked": null,
-     "name": "temporal_overlap",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "INT",
-     "widget": {
-      "name": "temporal_overlap"
-     },
-     "link": null
-    }
-   ],
-   "outputs": [
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "G\u00d6R\u00dcNT\u00dc",
-     "locked": null,
-     "name": "IMAGE",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "IMAGE",
-     "pos": null,
-     "slot_index": null,
-     "links": [
-      20
-     ]
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "VAEDecodeTiled"
-   },
-   "widgets_values": [
-    1024,
-    128,
-    32,
-    8
-   ],
-   "widgets_values_named": {
-    "tile_size": 1024,
-    "overlap": 128,
-    "temporal_size": 32,
-    "temporal_overlap": 8
-   }
-  },
-  {
-   "id": 33,
-   "type": "CreateVideo",
-   "pos": [
-    2851.7468750000003,
-    130
-   ],
-   "size": [
-    270,
-    150
-   ],
-   "flags": {},
-   "order": 17,
-   "mode": 0,
-   "showAdvanced": null,
-   "inputs": [
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "g\u00f6r\u00fcnt\u00fcler",
-     "locked": null,
-     "name": "images",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "IMAGE",
-     "pos": null,
-     "link": 20
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "ses",
-     "locked": null,
      "name": "audio",
-     "nameLocked": null,
-     "removable": null,
-     "shape": 7,
      "type": "AUDIO",
-     "pos": null,
-     "link": 21
+     "link": 21,
+     "shape": 7
     },
     {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "fps",
-     "locked": null,
-     "name": "fps",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "FLOAT",
-     "widget": {
-      "name": "fps"
-     },
-     "link": null
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "bit_depth",
-     "locked": null,
-     "name": "bit_depth",
-     "nameLocked": null,
-     "removable": null,
-     "shape": 7,
-     "type": "COMBO",
-     "widget": {
-      "name": "bit_depth"
-     },
-     "link": null
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "color_space",
-     "locked": null,
-     "name": "color_space",
-     "nameLocked": null,
-     "removable": null,
-     "shape": 7,
-     "type": "COMBO",
-     "widget": {
-      "name": "color_space"
-     },
-     "link": null
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "codec",
-     "locked": null,
-     "name": "codec",
-     "nameLocked": null,
-     "removable": null,
-     "shape": 7,
-     "type": "COMBO",
-     "widget": {
-      "name": "codec"
-     },
-     "link": null
-    }
-   ],
-   "outputs": [
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "V\u0130DEO",
-     "locked": null,
-     "name": "VIDEO",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "VIDEO",
-     "pos": null,
-     "slot_index": null,
-     "links": [
-      22
-     ]
-    }
-   ],
-   "properties": {
-    "Node name for S&R": "CreateVideo"
-   },
-   "widgets_values": [
-    24,
-    "auto",
-    "sRGB",
-    "none"
-   ],
-   "widgets_values_named": {
-    "fps": 24,
-    "bit_depth": "auto",
-    "color_space": "sRGB",
-    "codec": "none"
-   }
-  },
-  {
-   "id": 34,
-   "type": "SaveVideo",
-   "pos": [
-    3221.7468750000003,
-    130
-   ],
-   "size": [
-    270,
-    130
-   ],
-   "flags": {},
-   "order": 18,
-   "mode": 0,
-   "showAdvanced": null,
-   "inputs": [
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "video",
-     "locked": null,
-     "name": "video",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "VIDEO",
-     "pos": null,
-     "link": 22
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "dosyaad\u0131_\u00f6neki",
-     "locked": null,
      "name": "filename_prefix",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
      "type": "STRING",
      "widget": {
       "name": "filename_prefix"
@@ -2039,107 +1746,31 @@
      "link": null
     },
     {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "format",
-     "locked": null,
-     "name": "format",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "COMFY_DYNAMICCOMBO_V3",
+     "name": "fps",
+     "type": "FLOAT",
      "widget": {
-      "name": "format"
+      "name": "fps"
      },
      "link": null
     },
     {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "kodek",
-     "locked": null,
-     "name": "format.codec",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "COMFY_DYNAMICCOMBO_V3",
+     "name": "crf",
+     "type": "INT",
      "widget": {
-      "name": "format.codec"
-     },
-     "link": null
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "encoding",
-     "locked": null,
-     "name": "format.codec.encoding",
-     "nameLocked": null,
-     "removable": null,
-     "shape": 7,
-     "type": "COMFY_DYNAMICCOMBO_V3",
-     "widget": {
-      "name": "format.codec.encoding"
-     },
-     "link": null
-    },
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "codec",
-     "locked": null,
-     "name": "codec",
-     "nameLocked": null,
-     "removable": null,
-     "shape": 7,
-     "type": "COMFY_DYNAMICCOMBO_V3",
-     "widget": {
-      "name": "codec"
+      "name": "crf"
      },
      "link": null
     }
    ],
-   "outputs": [
-    {
-     "color_off": null,
-     "color_on": null,
-     "dir": null,
-     "label": null,
-     "localized_name": "video",
-     "locked": null,
-     "name": "video",
-     "nameLocked": null,
-     "removable": null,
-     "shape": null,
-     "type": "VIDEO",
-     "pos": null,
-     "slot_index": null,
-     "links": null
-    }
-   ],
-   "properties": {},
+   "outputs": [],
+   "properties": {
+    "Node name for S&R": "SyncTileStreamSave"
+   },
    "widgets_values": [
     "synctile/upscale",
-    "mp4",
-    "h264",
-    "auto",
-    "auto"
-   ],
-   "widgets_values_named": {
-    "filename_prefix": "synctile/upscale",
-    "format": "mp4",
-    "format.codec": "h264",
-    "format.codec.encoding": "auto",
-    "codec": "auto"
-   }
+    24,
+    14
+   ]
   }
  ],
  "links": [
@@ -2283,41 +1914,25 @@
    18,
    30,
    0,
-   32,
-   0,
+   40,
+   1,
    "LATENT"
   ],
   [
    19,
    31,
    0,
-   32,
-   1,
+   40,
+   0,
    "VAE"
   ],
   [
-   20,
-   32,
-   0,
-   33,
-   0,
-   "IMAGE"
-  ],
-  [
    21,
    21,
    1,
-   33,
-   1,
+   40,
+   2,
    "AUDIO"
-  ],
-  [
-   22,
-   33,
-   0,
-   34,
-   0,
-   "VIDEO"
   ]
  ],
  "floatingLinks": null,

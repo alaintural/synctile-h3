@@ -2,7 +2,7 @@
  "1": {
   "class_type": "UNETLoader",
   "inputs": {
-   "unet_name": "minimax_h3_fl2va_pruned_bf16.safetensors",
+   "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
    "weight_dtype": "default"
   }
  },
@@ -165,7 +165,9 @@
    ],
    "tile_width": 1472,
    "tile_height": 896,
-   "seed": 20260927
+   "seed": 20260927,
+   "window_frames": 0,
+   "window_overlap": 39
   }
  },
  "31": {
@@ -178,47 +180,24 @@
    "mod": 3
   }
  },
- "32": {
-  "class_type": "VAEDecodeTiled",
+ "40": {
+  "class_type": "SyncTileStreamSave",
   "inputs": {
-   "samples": [
-    "30",
-    0
-   ],
    "vae": [
     "31",
     0
    ],
-   "tile_size": 1024,
-   "overlap": 128,
-   "temporal_size": 32,
-   "temporal_overlap": 8
-  }
- },
- "33": {
-  "class_type": "CreateVideo",
-  "inputs": {
-   "images": [
-    "32",
+   "samples": [
+    "30",
     0
    ],
    "audio": [
     "21",
     1
    ],
-   "fps": 24
-  }
- },
- "34": {
-  "class_type": "SaveVideo",
-  "inputs": {
-   "video": [
-    "33",
-    0
-   ],
    "filename_prefix": "synctile/upscale",
-   "format": "mp4",
-   "format.codec": "h264"
+   "fps": 24.0,
+   "crf": 14
   }
  }
 }
