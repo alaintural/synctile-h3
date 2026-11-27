@@ -5,8 +5,8 @@ an output that sends each finished chunk to ffmpeg as 8-bit frames, so RAM use d
 The frames are the same frames that the normal H3 decode makes: the VAE runs its own chunks and blending, only the place
 where it writes them changes.
 
-Inputs: vae (the H3 video VAE), samples (video latent), filename_prefix (relative to the ComfyUI output folder,
-or an absolute path), fps, crf, audio (optional, the AUDIO output of the source video).
+Inputs: vae (the H3 video VAE), samples (video latent), filename_prefix (relative to the ComfyUI output folder),
+fps, crf, audio (optional, the AUDIO output of the source video).
 Clone this repository into ComfyUI/custom_nodes, or copy this file there, then restart ComfyUI."""
 import os, shutil, subprocess, tempfile
 import torch
@@ -20,6 +20,15 @@ def ffmpeg_exe():
         return ff
     import imageio_ffmpeg
     return imageio_ffmpeg.get_ffmpeg_exe()
+
+
+def checked_prefix(prefix):
+    """A relative name under the ComfyUI output folder. A drive, a root, a network share or '..' stops here,
+    before the first filesystem call."""
+    p = str(prefix).strip().replace("\\", "/")
+    if not p or p.startswith("/") or ":" in p or ".." in p.split("/"):
+        raise ValueError("filename_prefix must be a relative path inside the ComfyUI output folder")
+    return p
 
 
 class _Sink:
@@ -72,14 +81,9 @@ class SyncTileStreamSave:
         shape = m.decode_output_shape(z.shape)
         _, _, n, h, w = shape
 
-        if os.path.isabs(filename_prefix):
-            out = filename_prefix if filename_prefix.lower().endswith(".mp4") else filename_prefix + ".mp4"
-            os.makedirs(os.path.dirname(out), exist_ok=True)
-            sub, name = "", os.path.basename(out)
-        else:
-            folder, base, counter, sub, _ = folder_paths.get_save_image_path(filename_prefix, folder_paths.get_output_directory(), w, h)
-            name = f"{base}_{counter:05}_.mp4"
-            out = os.path.join(folder, name)
+        folder, base, counter, sub, _ = folder_paths.get_save_image_path(checked_prefix(filename_prefix), folder_paths.get_output_directory(), w, h)
+        name = f"{base}_{counter:05}_.mp4"
+        out = os.path.join(folder, name)
 
         cmd = [ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{w}x{h}", "-r", f"{fps}", "-i", "-"]
         wav = None

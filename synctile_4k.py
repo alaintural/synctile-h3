@@ -145,12 +145,16 @@ def cikti():
 
 def coz():
     t0 = time.time()
-    h.calis({"1": {"class_type": "LoadLatent", "inputs": {"latent": f"{KEY}_son.latent"}},
-             "3": {"class_type": "VAELoader", "inputs": {"vae_name": h.VAE_V}},
-             "6": {"class_type": "H3VAEAyar", "inputs": {"vae": ["3", 0], "mod": VAE_MOD}},
-             "4": {"class_type": "VAEDecodeTiled", "inputs": {"samples": ["1", 0], "vae": ["6", 0], "tile_size": 1024,
-                                                             "overlap": 128, "temporal_size": 32, "temporal_overlap": 8}},
-             "5": {"class_type": "H3BoruKaydet", "inputs": {"images": ["4", 0], "cikti": str(cikti()), "ses": str(ses_yolu()), "crf": 14, "fps": 24}}})
+    _, ham = h.calis({"1": {"class_type": "LoadLatent", "inputs": {"latent": f"{KEY}_son.latent"}},
+                      "3": {"class_type": "VAELoader", "inputs": {"vae_name": h.VAE_V}},
+                      "6": {"class_type": "H3VAEAyar", "inputs": {"vae": ["3", 0], "mod": VAE_MOD}},
+                      "4": {"class_type": "VAEDecodeTiled", "inputs": {"samples": ["1", 0], "vae": ["6", 0], "tile_size": 1024,
+                                                                      "overlap": 128, "temporal_size": 32, "temporal_overlap": 8}},
+                      "5": {"class_type": "H3BoruKaydet", "inputs": {"images": ["4", 0], "filename_prefix": f"{h.ARA}/{KEY}_coz", "crf": 14, "fps": 24}}})
+    # the node writes only into the ComfyUI output folder; this script adds the audio and writes the final file
+    subprocess.run([h.FFMPEG, "-y", "-loglevel", "error", "-i", str(ham), "-i", str(ses_yolu()), "-map", "0:v", "-map", "1:a",
+                    "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", str(cikti())], check=True)
+    ham.unlink()
     print(f"DONE {cikti()} (decode {time.time() - t0:.0f} s)", flush=True)
 
 
