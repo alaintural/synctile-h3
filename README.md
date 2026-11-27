@@ -8,11 +8,11 @@
 
 MiniMax H3 is an open-weights video model that also generates sound. On a 24 GB card it tops out around 1344 x 768. SyncTile takes that clip up to 4K (3840 x 2160). The MiniMax H3 latent upscaler enlarges the latent. Then overlapping tiles refine it, and their latents are **blended after every sampling step**. One decode makes the video. You get no seams, and the eyes agree between tiles.
 
-## The current version is 0.3.0
+## The current version is 0.3.1
 
 This repository started in October 2026 with one script, `synctile_h3.py`. Since then the work moved on. The tile step is now a ComfyUI node, and a full pipeline, SyncTile Studio, is built around it. **If you want to use SyncTile today, use the current version.**
 
-| | First version (0.1) | Current version (0.3.0) |
+| | First version (0.1) | Current version (0.3.1) |
 |---|---|---|
 | How you use it | One script | The `SyncTileRefine` node with a ready workflow, or SyncTile Studio |
 | What you give it | A text prompt | Your own video (node) or a JSON scene file (Studio) |
@@ -306,6 +306,8 @@ This list is about `synctile_h3.py`.
 
 The `SyncTileRefine` node is also plain Python. It reads no files, writes no files and uses no network. Studio does more: it stops and starts ComfyUI, and it ships one ONNX file (the YuNet face detector).
 
+The two save nodes, `SyncTileStreamSave` and `H3BoruKaydet`, write only inside the ComfyUI output folder. Since 0.3.1 they refuse a drive letter, a root path, a network share and `..` in `filename_prefix`, and `H3BoruKaydet` takes audio as an `AUDIO` input, not as a file path. If you have 0.3.0 or older, please update.
+
 ## Model license
 
 This repo contains no MiniMax H3 weights. The only model file here is the YuNet face detector (`face_detection_yunet_2023mar.onnx`, from the OpenCV Zoo, MIT license). Bring your own MiniMax H3 weights and check the MiniMax H3 license terms for your region and use case. The MIT license below covers this code, not the model.
@@ -332,7 +334,7 @@ This repo contains no MiniMax H3 weights. The only model file here is the YuNet 
 If SyncTile helps your work, please cite it (see `CITATION.cff`):
 
 ```
-Tural, A. (2026). SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks (Version 0.3.0). Pixedi AI Lab. Zenodo.
+Tural, A. (2026). SyncTile for MiniMax H3: synchronized-tile 4K refinement and speed benchmarks (Version 0.3.1). Pixedi AI Lab. Zenodo.
 https://doi.org/10.5281/zenodo.23196934
 ```
 

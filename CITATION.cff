@@ -9,9 +9,9 @@ authors:
 repository-code: "https://github.com/alaintural/synctile-h3"
 url: "https://pixedi.com/lab/minimax-h3-4k-synctile"
 license: MIT
-version: 0.3.0
+version: 0.3.1
 doi: 10.5281/zenodo.23196934
-date-released: 2026-11-22
+date-released: 2026-11-27
 keywords:
   - MiniMax H3
   - video generation
